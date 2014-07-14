@@ -1,19 +1,35 @@
 # -*- coding: utf-8 -*-
+## インスタンスメソッド
+# extract(maparea, mapinfo)
+#     maparea => マップエリア
+#     mapinfo => マップステージ
 module Kancolle
-  class FindEntryFile
-    # @start startファイルの配列
-    # @file @start[x]をkeyとした１出撃のファイル群
-    # @file[@start[x]][x][ :start2          ]
-    #                    [ :port            ]
-    #                    [ :battle          ]
-    #                    [ :slitimem_memver ]
-    #                    [ :next            ]
-    attr_reader :start, :file
-
+  class FindEntryFile < Kancolle::Model
     def initialize(dir = nil)
       arr = find_entry_file_for_dir(dir)
       @start = arr[0]
       @file  = arr[1]
+    end
+
+    public
+
+    # ステージを指定して抽出
+    def extract(maparea, mapinfo = nil)
+      stage = EntryFile.new
+      @start.each_with_index do |file, i|
+        open(file) do |json|
+          start_json = JSON::parse(json.read)
+          if start_json["api_data"]["api_maparea_id"] == maparea
+            if mapinfo.nil? || start_json["api_data"]["api_mapinfo_no"] != mapinfo
+              next
+            else
+              stage.start.push(file)
+              stage.file[file] = stage.file[file]
+            end
+          end
+        end
+      end
+      return stage
     end
 
     private
@@ -74,7 +90,10 @@ module Kancolle
                                })
             next_file = nil
           end
-
+        end
+        unless syutugeki_arr.nil?
+          battle_datas[start_file] = syutugeki_arr
+          start_arr.push(start_file)
         end
       end
       return [start_arr, battle_datas]
