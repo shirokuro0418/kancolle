@@ -4,7 +4,7 @@
 #     maparea => マップエリア
 #     mapinfo => マップステージ
 module Kancolle
-  class FindEntryFile < Kancolle::Model
+  class FindEntryFile < Kancolle::EntryFile
     def initialize(dir = nil)
       arr = find_entry_file_for_dir(dir)
       @start = arr[0]
@@ -15,20 +15,22 @@ module Kancolle
 
     # ステージを指定して抽出
     def extract(maparea, mapinfo = nil)
-      stage = EntryFile.new
-      @start.each_with_index do |file, i|
-        open(file) do |json|
+      start = Array.new
+      file  = Hash.new
+      @start.each_with_index do |start_file, i|
+        open(start_file) do |json|
           start_json = JSON::parse(json.read)
           if start_json["api_data"]["api_maparea_id"] == maparea
             if mapinfo.nil? || start_json["api_data"]["api_mapinfo_no"] != mapinfo
               next
             else
-              stage.start.push(file)
-              stage.file[file] = stage.file[file]
+              start.push(start_file)
+              file[start_file] = @file[start_file]
             end
           end
         end
       end
+      stage = EntryFile.new(start, file)
       return stage
     end
 

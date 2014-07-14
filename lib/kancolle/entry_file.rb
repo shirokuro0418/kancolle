@@ -3,6 +3,6 @@
 
 module Kancolle
   class EntryFile < Kancolle::Model
-    attr_accessor :start, :file
+   
   end
 end

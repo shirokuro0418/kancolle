@@ -17,5 +17,8 @@ module Kancolle
       @start = start
       @file = file
     end
+
+    private
+    attr_writer :start, :file
   end
 end
