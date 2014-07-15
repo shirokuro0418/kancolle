@@ -6,11 +6,8 @@
 module Kancolle
   class FindEntryFile < Kancolle::EntryFile
     def initialize(dir = nil)
-      arr = find_entry_file_for_dir(dir)
-      @start           = arr[0]
-      @file            = arr[1]
-      @start2          = arr[2]
-      @slotitem_member = arr[3]
+      datas = find_entry_file_for_dir(dir)
+      super(datas)
     end
 
     public
@@ -36,8 +33,12 @@ module Kancolle
           end
         end
       end
-      stage = EntryFile.new(start, file, start2, slotitem_member)
-      return stage
+      return EntryFile.new({
+        "start" => start,
+        "file" => file,
+        "start2" => start2,
+        "slotitem_member" => slotitem_member
+      })
     end
 
     private
@@ -107,7 +108,9 @@ module Kancolle
           slotitem_member_hash[start_file] = slotitem_member_file
         end
       end
-      return [start_arr, file_hash, start2_hash, slotitem_member_hash]
+      return { "start" => start_arr, "file" => file_hash, "start2" => start2_hash,
+        "slotitem_member" => slotitem_member_hash,
+      }
     end
   end
 end

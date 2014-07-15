@@ -9,7 +9,7 @@ module Kancolle
     # @file[@start[x]][x][ :port            ]
     #                    [ :battle          ]
     #                    [ :next            ]
-    attr_reader :start, :file
+    attr_reader :start, :file, :start2, :slotitem_member
 
     def initialize
       @start           = Array.new
@@ -20,12 +20,12 @@ module Kancolle
 
 
     def initialize datas = {}  # (start = Array.new, file = Hash.new, start2 = Hash.new, slotitem_member = Hash.new)
-      datas.each do |attribute_anme, value|
+      datas.each do |attribute_name, value|
         send "#{attribute_name.to_s.underscore}=", value
       end
     end
 
     private
-    attr_writer :start, :file
+    attr_writer :start, :file, :start2, :slotitem_member
   end
 end

@@ -7,12 +7,14 @@ module Kancolle
     ##################################################################
     # イニシャライズ                                                 #
     ##################################################################
-    # def initialize
-    #   super
+    # def initialize(start = Array.new, file = Hash.new, start2 = Hash.new, slotitem_member = Hash.new)
+    #   @start           = start
+    #   @file            = file
+    #   @start2          = start2
+    #   @slotitem_member = slotitem_member
 
-    #   # @names = self.names
+      
     # end
-
     ##################################################################
     # インスタンスメソッド                                           #
     ##################################################################
