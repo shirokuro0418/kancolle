@@ -11,5 +11,9 @@ stage = FindEntryFile.new(ARGV[0])
 
 stage_5_4 = stage.extract(5, 4)
 
-p stage_5_4.start[0]
-p stage_5_4.file[stage_5_4.start[0]].length
+# 5-4にいったスタートファイル
+p stage_5_4.start
+# 5-4に出撃した際、止まったマスの回数
+stage_5_4.start.each do |start|
+  p stage_5_4.file[start]
+end

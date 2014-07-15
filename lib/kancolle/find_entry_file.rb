@@ -60,6 +60,7 @@ module Kancolle
         start_file           = nil
         next_file            = nil
         ship2_file           = nil
+        battle_file          = nil
         syutugeki_arr        = nil
 
         dir.sort.each do |file|
@@ -67,6 +68,7 @@ module Kancolle
           port_file            = dir.path + "/" + file if file =~ /_PORT.json$/     # portファイルの輸出
           slotitem_member_file = dir.path + "/" + file if file =~ /_SLOTITEM_MEMBER.json$/ # SLOTITEM_MEMBERの輸出
           ship2_file           = dir.path + "/" + file if file =~ /_SHIP2.json/
+          battle_file          = dir.path + "/" + file if file =~ /_BATTLE.json/
 
           if file =~ /_START.json$/
             unless syutugeki_arr.nil?
@@ -84,6 +86,7 @@ module Kancolle
             unless next_file.nil?
               syutugeki_arr.push({ :port            => port_file,
                                    :battle          => nil,
+                                   :battle_result   => nil,
                                    :next            => next_file,
                                    :ship2           => ship2_file,
                                  })
@@ -92,13 +95,15 @@ module Kancolle
           end
 
           # battleファイルの輸出
-          if file =~ /_BATTLE.json$/
+          if file =~ /_BATTLE_RESULT.json$/
             syutugeki_arr.push({ :port            => port_file,
-                                 :battle          => dir.path + "/" + file,
+                                 :battle          => battle_file,
+                                 :battle_result   => dir.path + "/" + file,
                                  :next            => next_file,
                                  :ship2           => ship2_file,
                                })
             next_file = nil
+            battle_file = nil
           end
         end
         unless syutugeki_arr.nil?
