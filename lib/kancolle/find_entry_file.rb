@@ -17,8 +17,10 @@ module Kancolle
 
     # ステージを指定して抽出
     def extract(maparea, mapinfo = nil)
-      start = Array.new
-      file  = Hash.new
+      start           = Array.new
+      file            = Hash.new
+      start2          = Hash.new
+      slotitem_member = Hash.new
       @start.each_with_index do |start_file, i|
         open(start_file) do |json|
           start_json = JSON::parse(json.read)
@@ -27,12 +29,14 @@ module Kancolle
               next
             else
               start.push(start_file)
-              file[start_file] = @file[start_file]
+              file[start_file]            = @file[start_file]
+              start2[start_file]          = @start2[start_file]
+              slotitem_member[start_file] = @slotitem_member[start_file]
             end
           end
         end
       end
-      stage = EntryFile.new(start, file)
+      stage = EntryFile.new(start, file, start2, slotitem_member)
       return stage
     end
 

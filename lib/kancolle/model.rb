@@ -11,11 +11,18 @@ module Kancolle
     #                    [ :next            ]
     attr_reader :start, :file
 
-    def initialize(start = Array.new, file = Hash.new, start2 = Hash.new, slotitem_member = Hash.new)
-      @start           = start
-      @file            = file
-      @start2          = start2
-      @slotitem_member = slotitem_member
+    def initialize
+      @start           = Array.new
+      @file            = Hash.new
+      @start2          = Hash.new
+      @slotitem_member = Hash.new
+    end
+
+
+    def initialize datas = {}  # (start = Array.new, file = Hash.new, start2 = Hash.new, slotitem_member = Hash.new)
+      datas.each do |attribute_anme, value|
+        send "#{attribute_name.to_s.underscore}=", value
+      end
     end
 
     private
