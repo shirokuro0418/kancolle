@@ -7,8 +7,10 @@ module Kancolle
   class FindEntryFile < Kancolle::EntryFile
     def initialize(dir = nil)
       arr = find_entry_file_for_dir(dir)
-      @start = arr[0]
-      @file  = arr[1]
+      @start           = arr[0]
+      @file            = arr[1]
+      @start2          = arr[2]
+      @slotitem_member = arr[3]
     end
 
     public
@@ -41,8 +43,10 @@ module Kancolle
         dir = "/Users/shirokuro11/Documents/koukai_nisshi/data/json/json"
       end
 
-      battle_datas = Hash.new
-      start_arr    = Array.new
+      start_arr            = Array.new
+      file_hash            = Hash.new
+      start2_hash          = Hash.new
+      slotitem_member_hash = Hash.new
 
       Dir.open(dir) do |dir|
         start2_file          = nil
@@ -61,8 +65,10 @@ module Kancolle
 
           if file =~ /_START.json$/
             unless syutugeki_arr.nil?
-              battle_datas[start_file] = syutugeki_arr
               start_arr.push(start_file)
+              file_hash[start_file]            = syutugeki_arr
+              start2_hash[start_file]          = start2_file
+              slotitem_member_hash[start_file] = slotitem_member_file
             end
             start_file    = dir.path + "/" + file
             syutugeki_arr = Array.new
@@ -71,9 +77,8 @@ module Kancolle
           # nextファイルからステージ情報の輸出
           if file =~ /_NEXT.json$/
             unless next_file.nil?
-              syutugeki_arr.push({ :start2          => start2_file,
-                                   :port            => port_file,
-                                   :slotitem_member => slotitem_member_file,
+              syutugeki_arr.push({ :port            => port_file,
+                                   :battle          => nil,
                                    :next            => next_file,
                                    :ship2           => ship2_file,
                                  })
@@ -83,10 +88,8 @@ module Kancolle
 
           # battleファイルの輸出
           if file =~ /_BATTLE.json$/
-            syutugeki_arr.push({ :start2          => start2_file,
-                                 :port            => port_file,
+            syutugeki_arr.push({ :port            => port_file,
                                  :battle          => dir.path + "/" + file,
-                                 :slotitem_member => slotitem_member_file,
                                  :next            => next_file,
                                  :ship2           => ship2_file,
                                })
@@ -94,11 +97,13 @@ module Kancolle
           end
         end
         unless syutugeki_arr.nil?
-          battle_datas[start_file] = syutugeki_arr
           start_arr.push(start_file)
+          file_hash[start_file]            = syutugeki_arr
+          start2_hash[start_file]          = start2_file
+          slotitem_member_hash[start_file] = slotitem_member_file
         end
       end
-      return [start_arr, battle_datas]
+      return [start_arr, file_hash, start2_hash, slotitem_member_hash]
     end
   end
 end
