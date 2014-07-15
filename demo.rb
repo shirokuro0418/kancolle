@@ -15,5 +15,5 @@ stage_5_4 = stage.extract(5, 4)
 p stage_5_4.start
 # 5-4に出撃した際、止まったマスの回数
 stage_5_4.start.each do |start|
-  p stage_5_4.file[start]
+  p stage_5_4.file[start].length
 end

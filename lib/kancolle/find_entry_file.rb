@@ -52,6 +52,7 @@ module Kancolle
       file_hash            = Hash.new
       start2_hash          = Hash.new
       slotitem_member_hash = Hash.new
+      port_hash            = Hash.new
 
       Dir.open(dir) do |dir|
         start2_file          = nil
@@ -76,6 +77,7 @@ module Kancolle
               file_hash[start_file]            = syutugeki_arr
               start2_hash[start_file]          = start2_file
               slotitem_member_hash[start_file] = slotitem_member_file
+              port_hash[start_file]            = port_file
             end
             start_file    = dir.path + "/" + file
             syutugeki_arr = Array.new
@@ -84,8 +86,7 @@ module Kancolle
           # nextファイルからステージ情報の輸出
           if file =~ /_NEXT.json$/
             unless next_file.nil?
-              syutugeki_arr.push({ :port            => port_file,
-                                   :battle          => nil,
+              syutugeki_arr.push({ :battle          => nil,
                                    :battle_result   => nil,
                                    :next            => next_file,
                                    :ship2           => ship2_file,
@@ -96,8 +97,7 @@ module Kancolle
 
           # battleファイルの輸出
           if file =~ /_BATTLE_RESULT.json$/
-            syutugeki_arr.push({ :port            => port_file,
-                                 :battle          => battle_file,
+            syutugeki_arr.push({ :battle          => battle_file,
                                  :battle_result   => dir.path + "/" + file,
                                  :next            => next_file,
                                  :ship2           => ship2_file,
@@ -111,6 +111,7 @@ module Kancolle
           file_hash[start_file]            = syutugeki_arr
           start2_hash[start_file]          = start2_file
           slotitem_member_hash[start_file] = slotitem_member_file
+          port_hash[start_file]            = port_file
         end
       end
       return { "start" => start_arr, "file" => file_hash, "start2" => start2_hash,

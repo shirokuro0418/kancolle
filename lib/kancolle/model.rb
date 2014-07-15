@@ -6,26 +6,29 @@ module Kancolle
   class Model
     # @start startファイルの配列
     # @file @start[x]をkeyとした１出撃のファイル群
-    # @file[@start[x]][x][ :port            ]
+    # @file[@start[x]][x][ :ship2           ]
     #                    [ :battle          ]
     #                    [ :next            ]
-    attr_reader :start, :file, :start2, :slotitem_member
+    #                    [ :battle_result   ]
+    # @start2          @start[x]をkeyとしたSTART2.jsonのファイルパス
+    # @slotitem_member 〃                  SLOTITEM_BEMBER.jsonのファイルパス
+    attr_reader :start, :file, :start2, :slotitem_member, :port
 
     def initialize
       @start           = Array.new
       @file            = Hash.new
       @start2          = Hash.new
       @slotitem_member = Hash.new
+      @port            = Hash.new
     end
 
-
-    def initialize datas = {}  # (start = Array.new, file = Hash.new, start2 = Hash.new, slotitem_member = Hash.new)
+    def initialize datas = {}
       datas.each do |attribute_name, value|
         send "#{attribute_name.to_s.underscore}=", value
       end
     end
 
     private
-    attr_writer :start, :file, :start2, :slotitem_member
+    attr_writer :start, :file, :start2, :slotitem_member, :port
   end
 end
