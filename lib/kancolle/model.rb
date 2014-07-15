@@ -6,16 +6,16 @@ module Kancolle
   class Model
     # @start startファイルの配列
     # @file @start[x]をkeyとした１出撃のファイル群
-    # @file[@start[x]][x][ :start2          ]
-    #                    [ :port            ]
+    # @file[@start[x]][x][ :port            ]
     #                    [ :battle          ]
-    #                    [ :slitimem_memver ]
     #                    [ :next            ]
     attr_reader :start, :file
 
-    def initialize(start = Array.new, file = Hash.new)
-      @start = start
-      @file = file
+    def initialize(start = Array.new, file = Hash.new, start2 = Hash.new, slotitem_member = Hash.new)
+      @start           = start
+      @file            = file
+      @start2          = start2
+      @slotitem_member = slotitem_member
     end
 
     private
