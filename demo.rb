@@ -17,3 +17,11 @@ p stage_5_4.start
 stage_5_4.start.each do |start|
   p stage_5_4.file[start].length
 end
+
+
+## 5-4の艦娘たちの名前
+status = StartStatus::parse(stage_5_4.datas)
+
+status.start.each do |stat|
+  p status.names[stat]
+end

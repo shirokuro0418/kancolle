@@ -18,6 +18,7 @@ module Kancolle
       file            = Hash.new
       start2          = Hash.new
       slotitem_member = Hash.new
+      port            = Hash.new
       @start.each_with_index do |start_file, i|
         open(start_file) do |json|
           start_json = JSON::parse(json.read)
@@ -29,15 +30,17 @@ module Kancolle
               file[start_file]            = @file[start_file]
               start2[start_file]          = @start2[start_file]
               slotitem_member[start_file] = @slotitem_member[start_file]
+              port[start_file]            = @port[start_file]
             end
           end
         end
       end
       return EntryFile.new({
-        "start" => start,
-        "file" => file,
-        "start2" => start2,
-        "slotitem_member" => slotitem_member
+                             "start"           => start,
+                             "file"            => file,
+                             "start2"          => start2,
+                             "slotitem_member" => slotitem_member,
+                             "port"            => port
       })
     end
 
@@ -114,8 +117,12 @@ module Kancolle
           port_hash[start_file]            = port_file
         end
       end
-      return { "start" => start_arr, "file" => file_hash, "start2" => start2_hash,
+      return {
+        "start" => start_arr,
+        "file" => file_hash,
+        "start2" => start2_hash,
         "slotitem_member" => slotitem_member_hash,
+        "port" => port_hash
       }
     end
   end

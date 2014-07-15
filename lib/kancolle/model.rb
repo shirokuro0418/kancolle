@@ -28,6 +28,20 @@ module Kancolle
       end
     end
 
+    def inspect
+      vars = self.instance_variables.
+        map{|v| "#{v}=#{instance_variable_get(v).inspect}"}.join(",")
+      "<#{self.class}: #{vars}>"
+    end
+
+    def datas
+      vars = Hash.new
+      self.instance_variables.each do |v|
+        vars[v.to_s.sub(/@/, '')] = instance_variable_get(v)
+      end
+      vars
+    end
+
     private
     attr_writer :start, :file, :start2, :slotitem_member, :port
   end
