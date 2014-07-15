@@ -9,7 +9,7 @@ module Kancolle
     def initialize(datas = nil)
       super(datas)
 
-      @names = StartStatus::names(EntryFile.new(datas))
+      @names = StartStatus::names(self)
     end
 
     ##################################################################

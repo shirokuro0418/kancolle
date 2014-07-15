@@ -14,17 +14,10 @@ module Kancolle
     # @slotitem_member 〃                  SLOTITEM_BEMBER.jsonのファイルパス
     attr_reader :start, :file, :start2, :slotitem_member, :port
 
-    def initialize
-      @start           = Array.new
-      @file            = Hash.new
-      @start2          = Hash.new
-      @slotitem_member = Hash.new
-      @port            = Hash.new
-    end
-
-    def initialize datas = {}
+    def initialize(datas = {})
       datas.each do |attribute_name, value|
-        send "#{attribute_name.to_s.underscore}=", value
+        eval("@#{attribute_name} = #{value}")
+        # send "@#{attribute_name.to_s.underscore}=", value
       end
     end
 
@@ -42,7 +35,5 @@ module Kancolle
       vars
     end
 
-    private
-    attr_writer :start, :file, :start2, :slotitem_member, :port
   end
 end
