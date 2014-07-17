@@ -7,7 +7,7 @@ require "kancolle"
 include Kancolle
 
 ## 5-4のファイルを出力
-stage = FindEntryFile.new(ARGV[0])
+stage = FindEntryFile::parse_fro_dir(ARGV[0])
 
 stage_5_4 = stage.extract(5, 4)
 
@@ -25,3 +25,7 @@ status = StartStatus::parse(stage_5_4.datas)
 status.start.each do |stat|
   p status.names[stat]
 end
+
+b_5_4 = stage_5_4.file[stage_5_4.start[0]]
+
+p Hantei::syouri(b_5_4[0][:battle])
