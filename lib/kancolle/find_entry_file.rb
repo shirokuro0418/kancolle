@@ -36,11 +36,11 @@ module Kancolle
 
           if file =~ /_START.json$/
             unless syutugeki_arr.nil?
-              entryfiles.push(EntryFile.new({ "start" => start_file,
-                                              "file" => syutugeki_arr,
-                                              "start2" => start2_file,
-                                              "slotitem_member" => start2_file,
-                                              "port" => port_file }))
+              entryfiles.push(EntryFile.new({ "start"           => start_file,
+                                              "file"            => syutugeki_arr,
+                                              "start2"          => start2_file,
+                                              "slotitem_member" => slotitem_member_file,
+                                              "port"            => port_file }))
             end
             start_file    = dir.path + "/" + file
             syutugeki_arr = Array.new
@@ -70,14 +70,14 @@ module Kancolle
           end
         end
         unless syutugeki_arr.nil?
-          entryfiles.push(EntryFile.new({ "start" => start_file,
-                                          "file" => syutugeki_arr,
-                                          "start2" => start2_file,
-                                          "slotitem_member" => start2_file,
-                                          "port" => port_file }))
+          entryfiles.push(EntryFile.new({ "start"           => start_file,
+                                          "file"            => syutugeki_arr,
+                                          "start2"          => start2_file,
+                                          "slotitem_member" => slotitem_member_file,
+                                          "port"            => port_file }))
         end
       end
-      return entryfiles
+      return EntryFiles.new(entryfiles)
     end
   end
 end

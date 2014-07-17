@@ -16,7 +16,7 @@ module Kancolle
 
     def initialize(datas = {})
       datas.each do |attribute_name, value|
-        eval("@#{attribute_name} = #{value}")
+        eval("@#{attribute_name} = '#{value}'")
         # send "@#{attribute_name.to_s.underscore}=", value
       end
     end
