@@ -9,15 +9,11 @@ include Kancolle
 ## 5-4のファイルを出力
 stage = FindEntryFile::parse_for_dir(ARGV[0])
 
-
-# stage_5_4 = stage.extract(5, 4)
-
-# # 5-4にいったスタートファイル
-# p stage_5_4.start
-# # 5-4に出撃した際、止まったマスの回数
-# stage_5_4.start.each do |start|
-#   p stage_5_4.file[start].length
-# end
+p stage.length
+p stage.extract_stage(5, 4).length # 5-4に出撃した回数
+p stage.extract_stage(5, 4).bauxites # 5-4のボーキ数(Array)
+stage_5_4 = stage.extract_stage(5, 4).extract_route([1, 7, 12, 18, 19])
+p stage_5_4.length # 5-4かつ、ルートを指定した出撃数
 
 
 # ## 5-4の艦娘たちの名前

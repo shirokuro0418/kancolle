@@ -16,8 +16,14 @@ module Kancolle
 
     def initialize(datas = {})
       datas.each do |attribute_name, value|
-        eval("@#{attribute_name} = '#{value}'")
-        # send "@#{attribute_name.to_s.underscore}=", value
+        if value.kind_of?(String)
+          eval("@#{attribute_name} = '#{value}'")
+        elsif value.kind_of?(Array)
+          eval("@#{attribute_name} = #{value}")
+        else
+          puts "error"
+          exit
+        end
       end
     end
 
