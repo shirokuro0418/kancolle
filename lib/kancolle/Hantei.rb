@@ -17,7 +17,7 @@ module Kancolle
 
     end
     def self.mvp(file)
-      # 保留      
+      # 保留
     end
 
     private

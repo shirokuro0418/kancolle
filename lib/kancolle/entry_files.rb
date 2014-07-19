@@ -29,7 +29,7 @@ module Kancolle
 
     # ルートで検出
     def extract_route(route)
-      @entry_files.select {|entry_file| entry_file.route == route}
+      EntryFiles.new(@entry_files.select {|entry_file| entry_file.route == route})
     end
 
     def length
