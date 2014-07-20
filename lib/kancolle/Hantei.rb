@@ -4,13 +4,42 @@
 module Kancolle
   class Hantei
     def self.syouri(file)
-      hps = Hantei::battle_damage(file)
-      f_rate = 100000 - 100000 * hps[1].inject{|sum, n| sum += n} / hps[0].inject{|sum, n| sum += n}
-      e_rate = 100000 - 100000 * hps[3].inject{|sum, n| sum += n} / hps[2].inject{|sum, n| sum += n}
+      f_nowhp, f_nokorihp, e_nowhp, e_nokorihp = Hantei::battle_damage(file)
+      count_enemy      = e_nowhp.select{|hp| hp > 0}.length
+      count_enemy_lost = e_nokorihp.select{|hp| hp > 0}.length
+
+      # S勝利の判定
+      if e_nokorihp == [0, 0, 0, 0, 0 ,0]
+        if f_nowhp == f_nokorihp
+          return "完全勝利"
+        else
+          return "S勝利"
+        end
+      end
+      # A勝利判定
+      case count_enemy
+      when 1                    # なし
+      when 2
+        return "A勝利" if count_enemy_lost == 1
+      when 3
+        return "A勝利" if 2 == count_enemy_lost
+      when 4
+        return "A勝利" if 2 <= count_enemy_lost && count_enemy_lost <= 3
+      when 5
+        return "A勝利" if 3 <= count_enemy_lost && count_enemy_lost <= 4
+      when 6
+        return "A勝利" if 3 <= count_enemy_lost && count_enemy_lost <= 5
+      end
+
+      # B勝利判定
+      f_rate = 100000 - 100000 * f_nokorihp.inject{|sum, n| sum += n} / f_nowhp.inject{|sum, n| sum += n}
+      e_rate = 100000 - 100000 * e_nokorihp.inject{|sum, n| sum += n} / e_nowhp.inject{|sum, n| sum += n}
 
       if f_rate != 0 && (100 * e_rate / f_rate) >= 250 ||
           f_rate == 0 && e_rate != 0
-        return "勝利"
+        return "B勝利"
+      elsif e_nokorihp[0] == 0
+        return "B勝利"          # 敵旗艦を倒す
       else
         return "負け"
       end

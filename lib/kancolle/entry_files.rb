@@ -29,16 +29,13 @@ module Kancolle
       end
       return EntryFiles.new(entry_files)
     end
-
     # ルートで検出
     def extract_route(route)
       EntryFiles.new(@entry_files.select {|entry_file| entry_file.route == route})
     end
-
     def length
       @entry_files.length
     end
-
     # ボーキサイト
     def bauxites
       bau = Array.new
@@ -47,7 +44,6 @@ module Kancolle
       end
       return bau
     end
-
     # ルート
     def routes
       routes = Array.new
@@ -56,7 +52,6 @@ module Kancolle
       end
       return routes
     end
-
     # 名前
     def names
       names = Array.new
@@ -64,6 +59,12 @@ module Kancolle
         names.push(entry_file.names)
       end
       return names
+    end
+    # 判定
+    def hantei
+      hantei = Array.new
+      @entry_files.each {|entry_file| hantei.push(entry_file.hantei)}
+      return hantei
     end
     ##################################################################
     # end インスタンスメソッド                                       #

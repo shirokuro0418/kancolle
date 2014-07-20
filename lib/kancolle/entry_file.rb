@@ -71,7 +71,7 @@ module Kancolle
       end
       return names
     end
-    # 勝利判定現在はB勝利のみ
+    # 勝利判定
     def hantei
       hantei = Array.new
       @file.each_with_index do |file, i|
