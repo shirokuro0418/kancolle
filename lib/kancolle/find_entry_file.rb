@@ -31,11 +31,12 @@ module Kancolle
         e_port_file            = nil
 
         dir.sort.each do |file|
-          start2_file          = dir.path + "/" + file if file =~ /_START2.json$/ # start2ファイルの抽出
-          port_file            = dir.path + "/" + file if file =~ /_PORT.json$/     # portファイルの輸出
-          slotitem_member_file = dir.path + "/" + file if file =~ /_SLOTITEM_MEMBER.json$/ # SLOTITEM_MEMBERの輸出
-          ship2_file           = dir.path + "/" + file if file =~ /_SHIP2.json/
-          battle_file          = dir.path + "/" + file if file =~ /_BATTLE.json/
+          start2_file          = dir.path.sub(/[^\/]$/, '\&/') + file if file =~ /_START2.json$/ # start2ファイルの抽出
+          port_file            = dir.path.sub(/[^\/]$/, '\&/') + file if file =~ /_PORT.json$/     # portファイルの輸出
+          # SLOTITEM_MEMBERの輸出
+          slotitem_member_file = dir.path.sub(/[^\/]$/, '\&/') + file if file =~ /_SLOTITEM_MEMBER.json$/
+          ship2_file           = dir.path.sub(/[^\/]$/, '\&/') + file if file =~ /_SHIP2.json/
+          battle_file          = dir.path.sub(/[^\/]$/, '\&/') + file if file =~ /_BATTLE.json/
 
           if file =~ /_START.json$/
             unless syutugeki_arr.nil?
@@ -45,7 +46,7 @@ module Kancolle
                                               "slotitem_member" => e_slotitem_member_file,
                                               "port"            => e_port_file }))
             end
-            e_start_file           = dir.path + "/" + file
+            e_start_file           = dir.path.sub(/[^\/]$/, '\&/') + file
             e_start2_file          = start2_file
             e_slotitem_member_file = slotitem_member_file
             e_port_file            = port_file
@@ -61,13 +62,13 @@ module Kancolle
                                    :ship2           => ship2_file,
                                  })
             end
-            next_file = dir.path + "/" + file
+            next_file = dir.path.sub(/[^\/]$/, '\&/') + file
           end
 
           # battleファイルの輸出
           if file =~ /_BATTLE_RESULT.json$/
             syutugeki_arr.push({ :battle          => battle_file,
-                                 :battle_result   => dir.path + "/" + file,
+                                 :battle_result   => dir.path.sub(/[^\/]$/, '\&/') + file,
                                  :next            => next_file,
                                  :ship2           => ship2_file,
                                })

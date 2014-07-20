@@ -21,8 +21,7 @@ module Kancolle
         elsif value.kind_of?(Array)
           eval("@#{attribute_name} = #{value}")
         else
-          puts "error"
-          exit
+          raise "Modelエラー:データの型が会いません。:attribute_name #{attribute_name}:value #{value}"
         end
       end
     end
