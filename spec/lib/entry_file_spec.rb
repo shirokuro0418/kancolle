@@ -31,8 +31,28 @@ describe "EntryFile" do
     entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
     expect(entry_file.map).to eq  [5, 4]
   end
+  it "is [39,82,96,87,135,80] for lv" do
+    entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
+    expect(entry_file.lv).to eq [39,82,96,87,135,80]
+  end
   it "is 100 for bauxite" do
     entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
     expect(entry_file.bauxite).to eq  100
+  end
+  it "is 295 for lost_fuel" do
+    entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
+    expect(entry_file.lost_fuel.inject(:+)).to eq 295
+  end
+  it "is [1,8,17,18,19] for routes" do
+    entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
+    expect(entry_file.route).to eq [1, 8, 17, 18, 19]
+  end
+  it "is ['あきつ丸改','扶桑改','利根改二','羽黒改二','大鳳改','瑞鶴改'] for names" do
+    entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
+    expect(entry_file.names).to eq ['あきつ丸改','扶桑改','利根改二','羽黒改二','大鳳改','瑞鶴改']
+  end
+  it "is ['勝利S', nil, '勝利S', nil, '勝利S'] for hantei" do
+    entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
+    expect(entry_file.hantei).to eq ['勝利S',nil,'勝利S', nil,'勝利S']
   end
 end

@@ -20,10 +20,10 @@ module Kancolle
         start2_file            = nil
         port_file              = nil
         slotitem_member_file   = nil
-        start_file             = nil
         next_file              = nil
         ship2_file             = nil
         battle_file            = nil
+        battle_midnight_file   = nil
         syutugeki_arr          = nil
         e_start_file           = nil
         e_start2_file          = nil
@@ -35,8 +35,9 @@ module Kancolle
           port_file            = dir.path.sub(/[^\/]$/, '\&/') + file if file =~ /_PORT.json$/     # portファイルの輸出
           # SLOTITEM_MEMBERの輸出
           slotitem_member_file = dir.path.sub(/[^\/]$/, '\&/') + file if file =~ /_SLOTITEM_MEMBER.json$/
-          ship2_file           = dir.path.sub(/[^\/]$/, '\&/') + file if file =~ /_SHIP2.json/
-          battle_file          = dir.path.sub(/[^\/]$/, '\&/') + file if file =~ /_BATTLE.json/
+          ship2_file           = dir.path.sub(/[^\/]$/, '\&/') + file if file =~ /_SHIP2.json$/
+          battle_file          = dir.path.sub(/[^\/]$/, '\&/') + file if file =~ /_BATTLE.json$/
+          battle_midnight_file = dir.path.sub(/[^\/]$/, '\&/') + file if file =~ /_BATTLE_MIDNIGHT.json$/
 
           if file =~ /_START.json$/
             unless syutugeki_arr.nil?
@@ -71,9 +72,12 @@ module Kancolle
                                  :battle_result   => dir.path.sub(/[^\/]$/, '\&/') + file,
                                  :next            => next_file,
                                  :ship2           => ship2_file,
+                                 :battle_midnight => battle_midnight_file
                                })
-            next_file = nil
-            battle_file = nil
+            battle_file          = nil
+            next_file            = nil
+            ship2_file           = nil
+            battle_midnight_file = nil
           end
         end
         unless syutugeki_arr.nil?
