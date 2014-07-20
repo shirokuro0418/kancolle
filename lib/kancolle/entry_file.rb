@@ -3,15 +3,19 @@
 
 module Kancolle
   class EntryFile < Kancolle::Model
-    ## マップ情報 return [マップ番号、ステージ番号]
+
+    public
+    ##################################################################
+    # インスタンスメソッド                                           #
+    ##################################################################
+    # マップ情報 return [マップ番号、ステージ番号]
     def map
       open(@start) do |s|
         start_json = JSON::parse(s.read)
         return [start_json["api_data"]["api_maparea_id"], start_json["api_data"]["api_mapinfo_no"]]
       end
     end
-
-    ## ボーキサイト
+    # ボーキサイト
     def bauxite
       count_lost = 0
       @file.each do |file|
@@ -28,8 +32,7 @@ module Kancolle
       end
       return count_lost * 5
     end
-
-    ## ルート
+    # ルート
     def route
       route = Array.new
       open(@start) do |s|
@@ -46,8 +49,7 @@ module Kancolle
       end
       return route
     end
-
-    ## 名前
+    # 名前
     def names
       names        = Array.new(6).map{nil}
       id_names     = Array.new(6).map{nil}
@@ -69,6 +71,21 @@ module Kancolle
       end
       return names
     end
+    # 勝利判定現在はB勝利のみ
+    def hantei
+      hantei = Array.new
+      @file.each_with_index do |file, i|
+        if file[:battle].nil?
+          hantei[i] = nil
+        else
+          hantei[i] = Hantei::syouri(file[:battle])
+        end
+      end
+      return hantei
+    end
+    ##################################################################
+    # end インスタンスメソッド                                       #
+    ##################################################################
   end
 end
 

@@ -14,7 +14,6 @@ module Kancolle
       else
         return "負け"
       end
-
     end
     def self.mvp(file)
       # 保留

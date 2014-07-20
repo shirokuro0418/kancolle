@@ -14,7 +14,8 @@ p stage.extract_stage(5, 4).length # 5-4に出撃した回数
 p stage.extract_stage(5, 4).bauxites # 5-4のボーキ数(Array)
 stage_5_4 = stage.extract_stage(5, 4).extract_route([1, 8, 17, 18, 19])
 p stage_5_4.bauxites
-p stage_5_4.names
+p stage_5_4.entry_files[0].hantei
+p stage_5_4.entry_files[0].route
 
 stage_5_4.entry_files[0].file.each {|file| p file[:next] }
 #p stage_5_4.length # 5-4かつ、ルートを指定した出撃数
