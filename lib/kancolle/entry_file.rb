@@ -33,7 +33,7 @@ module Kancolle
       return [@start_json["api_data"]["api_maparea_id"], @start_json["api_data"]["api_mapinfo_no"]]
     end
     # レベル
-    def lv
+    def lvs
       json_read
       lv = Array.new
       @port_json["api_data"]["api_ship"].each do |kanmusu|
@@ -61,7 +61,7 @@ module Kancolle
       return count_lost * 5
     end
     # 燃料
-    def lost_fuel
+    def lost_fuels
       json_read
 
       # 最後のship2ファイルのJSON
@@ -90,7 +90,7 @@ module Kancolle
         now_fuel[i] -= (m_fuel * (count * 0.2)).to_i
       end
       # ケッコン艦は15%off
-      lv.each_with_index do |lv, i|
+      lvs.each_with_index do |lv, i|
         now_fuel[i] = (max_fuel[i] - ((max_fuel[i] - now_fuel[i]) * 0.85).to_i) if lv > 99
       end
       max_fuel.map.with_index{|m_fuel, i| m_fuel - now_fuel[i]}

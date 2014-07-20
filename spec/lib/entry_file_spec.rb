@@ -31,17 +31,17 @@ describe "EntryFile" do
     entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
     expect(entry_file.map).to eq  [5, 4]
   end
-  it "is [39,82,96,87,135,80] for lv" do
+  it "is [39,82,96,87,135,80] for lvs" do
     entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
-    expect(entry_file.lv).to eq [39,82,96,87,135,80]
+    expect(entry_file.lvs).to eq [39,82,96,87,135,80]
   end
   it "is 100 for bauxite" do
     entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
     expect(entry_file.bauxite).to eq  100
   end
-  it "is 295 for lost_fuel" do
+  it "is 295 for lost_fuels" do
     entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
-    expect(entry_file.lost_fuel.inject(:+)).to eq 295
+    expect(entry_file.lost_fuels.inject(:+)).to eq 295
   end
   it "is [1,8,17,18,19] for routes" do
     entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
