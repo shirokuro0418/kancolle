@@ -53,5 +53,14 @@ module Kancolle
       end
       return routes
     end
+
+    # 名前
+    def names
+      names = Array.new
+      @entry_files.each do |entry_file|
+        names.push(entry_file.names)
+      end
+      return names
+    end
   end
 end

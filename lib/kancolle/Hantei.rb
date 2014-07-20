@@ -30,11 +30,6 @@ module Kancolle
       end
     end
     def self.battle_damage(file)
-      f_hp = 0
-      f_dm = 0
-      e_hp = 0
-      e_dm = 0
-
       open(file) do |f|
         json = JSON::parse(f.read)
         data = json["api_data"]

@@ -46,5 +46,36 @@ module Kancolle
       end
       return route
     end
+
+    ## 名前
+    def names
+      names        = Array.new(6).map{nil}
+      id_names     = Array.new(6).map{nil}
+      sortno_names = Array.new(6).map{nil}
+      port = nil
+      open(@port) {|p| port = JSON::parse(p.read)}
+      start2 = nil
+      open(@start2) {|s| start2 = JSON::parse(s.read)}
+      id_names = port["api_data"]["api_deck_port"][0]["api_ship"]
+      port["api_data"]["api_ship"].each do |kanmusu|
+        id_names.each_with_index do |id_name, i|
+          sortno_names[i] = kanmusu["api_sortno"] if id_name == kanmusu["api_id"]
+        end
+      end
+      start2["api_data"]["api_mst_ship"].each do |kanmusu|
+        sortno_names.each_with_index do |sortno_name, i|
+          names[i] = kanmusu["api_name"] if sortno_name == kanmusu["api_sortno"]
+        end
+      end
+      return names
+    end
   end
 end
+
+
+
+
+
+
+
+
