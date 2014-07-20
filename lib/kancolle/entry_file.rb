@@ -39,7 +39,7 @@ module Kancolle
         start = JSON::parse(s.read)
         route.push(start["api_data"]["api_no"])
       end
-      tmp_file = @file
+      tmp_file = @file.clone
       tmp_file.shift
       tmp_file.each do |file|
         open(file[:next]) do |n|
