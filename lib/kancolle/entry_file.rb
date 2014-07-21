@@ -24,7 +24,7 @@ module Kancolle
       @slotitem_member_json     = lambda {|x=nil| return return_json(:slotitem_member, x) }
       @file_json                = lambda {|x=nil| return return_json(:file, x) }
       @end_port_json            = lambda {|x=nil| return return_json(:end_port, x) }
-      @end_slotitem_member_json = lambda {|x=nil| return return_json(:end_port, x) }
+      @end_slotitem_member_json = lambda {|x=nil| return return_json(:end_slotitem_member, x) }
     end
 
     ##################################################################
@@ -49,17 +49,23 @@ module Kancolle
     end
     # ボーキサイト
     def bauxite
-      count_lost = 0
-      @file_json.call.each do |file_json|
-        next if file_json[:battle].nil?
-        if file_json[:battle]['api_data']['api_stage_flag'][0] == 1
-          count_lost     += file_json[:battle]['api_data']['api_kouku']["api_stage1"]["api_f_lostcount"]
-        end
-        if file_json[:battle]['api_data']['api_stage_flag'][2] == 1
-          count_lost     += file_json[:battle]['api_data']['api_kouku']["api_stage2"]["api_f_lostcount"]
+      max_onslot = Array.new(6).map{nil}
+      now_onslot = Array.new(6).map{nil}
+      # MAXのスロット数合計
+      @start2_json["api_data"]["api_mst_ship"].each do |def_kanmusu|
+        names.each_with_index do |name, i|
+          max_onslot[i] = def_kanmusu["api_maxeq"].inject(:+) if def_kanmusu["api_name"] == name
         end
       end
-      return count_lost * 5
+      # 現在のスロット数合計
+      @end_port_json["api_data"]["api_ship"].each do |kanmusu|
+        ids.each_with_index do |id, i|
+          if kanmusu["api_id"] == id
+            now_onslot[i] = kanmusu["api_onslot"].inject(:+)
+          end
+        end
+      end
+      max_onslot.map.with_index{|slot, i| slot - now_onslot[i]} * 5
     end
     # 燃料
     def lost_fuels
@@ -188,7 +194,9 @@ module Kancolle
           @json_data[key][i] = mass_json
         end
       when :end_port
-        open(@start2) {|j| @json_data[key] = JSON::parse(j.read)}
+        open(@end_port) {|j| @json_data[key] = JSON::parse(j.read)}
+      when :end_slotitem_member
+        open(@end_slotitem_member) {|j| @json_data[key] = JSON::parse(j.read)}
       end
     end
 
