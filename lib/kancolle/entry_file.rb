@@ -48,7 +48,7 @@ module Kancolle
       lv
     end
     # ボーキサイト
-    def bauxite
+    def lost_bauxites
       max_onslot = Array.new(6).map{nil}
       now_onslot = Array.new(6).map{nil}
       # MAXのスロット数合計
@@ -65,7 +65,7 @@ module Kancolle
           end
         end
       end
-      max_onslot.map.with_index{|slot, i| slot - now_onslot[i]} * 5
+      max_onslot.map.with_index{|slot, i| (slot - now_onslot[i]) * 5}
     end
     # 燃料
     def lost_fuels
@@ -101,23 +101,28 @@ module Kancolle
       max_fuel.map.with_index{|m_fuel, i| m_fuel - now_fuel[i]}
     end
     # 弾薬
-    def lost_bull
+    def lost_bulls
       max_bull = Array.new(6).map{nil}
       now_bull = Array.new(6).map{nil}
       # MAXのスロット数合計
       @start2_json["api_data"]["api_mst_ship"].each do |def_kanmusu|
         names.each_with_index do |name, i|
-          max_onslot[i] = def_kanmusu["api_bull_max"] if def_kanmusu["api_name"] == name
+          max_bull[i] = def_kanmusu["api_bull_max"] if def_kanmusu["api_name"] == name
         end
       end
       # 現在のスロット数合計
       @end_port_json["api_data"]["api_ship"].each do |kanmusu|
         ids.each_with_index do |id, i|
           if kanmusu["api_id"] == id
-            now_onslot[i] = kanmusu["api_bull"]
+            now_bull[i] = kanmusu["api_bull"]
           end
         end
       end
+      # ケッコン艦は15%off
+      lvs.each_with_index do |lv, i|
+        now_bull[i] = (max_bull[i] - ((max_bull[i] - now_bull[i]) * 0.85).to_i) if lv > 99
+      end
+
       max_bull.map.with_index{|slot, i| slot - now_bull[i]}
     end
     # ルート
@@ -204,11 +209,11 @@ module Kancolle
         @json_data[key] = Array.new
         @file.each_with_index do |mass, i|
           mass_json = Hash.new
-          mass.each do |key, value|
-            if value.nil?
-              mass_json[key] = nil
+          mass.each do |mass_key, mass_value|
+            if mass_value.nil?
+              mass_json[mass_key] = nil
             else
-              open(value){|j| mass_json[key] = JSON::parse(j.read)}
+              open(mass_value){|j| mass_json[mass_key] = JSON::parse(j.read)}
             end
           end
           @json_data[key][i] = mass_json
