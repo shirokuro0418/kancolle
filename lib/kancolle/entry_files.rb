@@ -44,6 +44,10 @@ module Kancolle
       end
       return bau
     end
+    # 燃料
+    def lost_fuels
+      @entry_files.map{|entry_file| entry_file.lost_fuels}
+    end
     # ルート
     def routes
       routes = Array.new

@@ -49,8 +49,8 @@ module Kancolle
     end
     # ボーキサイト
     def lost_bauxites
-      max_onslot = Array.new(6).map{nil}
-      now_onslot = Array.new(6).map{nil}
+      max_onslot = Array.new(6).map{0}
+      now_onslot = Array.new(6).map{0}
       # MAXのスロット数合計
       @start2_json["api_data"]["api_mst_ship"].each do |def_kanmusu|
         names.each_with_index do |name, i|
@@ -65,40 +65,33 @@ module Kancolle
           end
         end
       end
-      max_onslot.select{|d| d unless d.nil?}.map.with_index{|slot, i| (slot - now_onslot[i]) * 5}
+      max_onslot.map.with_index{|slot, i| (slot - now_onslot[i]) * 5 unless slot.nil?}
     end
     # 燃料
     def lost_fuels
-      # 最後のship2ファイルのJSON
-      ship2 = @file_json.call.select {|file_json| file_json[:ship2] unless file_json[:ship2].nil?}.last[:ship2]
-
-      now_fuel = Array.new
-      max_fuel = Array.new
-      # MAX燃料
-      @start2_json["api_data"]["api_mst_ship"].each do |def_kanmusu|
-        names.each_with_index do |name, i|
-          max_fuel[i] = def_kanmusu["api_fuel_max"] if def_kanmusu["api_name"] == name
-        end
-      end
-      # 現在燃料
-      ship2["api_data"].each do |kanmusu|
+      now_fuels = Array.new(6).map{0}
+      max_fuels = Array.new(6).map{0}
+      # 出撃時の燃料
+      @port_json["api_data"]["api_ship"].each do |kanmusu|
         ids.each_with_index do |id, i|
           if kanmusu["api_id"] == id
-            now_fuel[i] = kanmusu["api_fuel"]
+            max_fuels[i] = kanmusu["api_fuel"]
           end
         end
       end
-
-      count = 0
-      count += 1 unless @file_json.call.last[:battle].nil?
-      max_fuel.each_with_index do |m_fuel, i|
-        now_fuel[i] -= (m_fuel * (count * 0.2)).to_i
+      # 現在燃料
+      @end_port_json["api_data"]["api_ship"].each do |kanmusu|
+        ids.each_with_index do |id, i|
+          if kanmusu["api_id"] == id
+            now_fuels[i] = kanmusu["api_fuel"]
+          end
+        end
       end
       # ケッコン艦は15%off
       lvs.each_with_index do |lv, i|
-        now_fuel[i] = (max_fuel[i] - ((max_fuel[i] - now_fuel[i]) * 0.85).to_i) if lv > 99
+        now_fuels[i] = (max_fuels[i] - ((max_fuels[i] - now_fuels[i]) * 0.85).to_i) if lv > 99
       end
-      max_fuel.map.with_index{|m_fuel, i| m_fuel - now_fuel[i]}
+      max_fuels.map.with_index{|m_fuel, i| m_fuel - now_fuels[i]}
     end
     # 弾薬
     def lost_bulls
