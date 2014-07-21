@@ -40,7 +40,7 @@ describe EntryFile do
   describe '.lvs' do
     subject(:lvs) { @entry_file.lvs }
     it "has [39,82,96,87,135,80]" do
-      expect(lvs).to eq [39,82,96,87,135,80]
+      expect(lvs).to_a.should eq [39,82,96,87,135,80]
     end
   end
   describe '.lost_bauxites' do
