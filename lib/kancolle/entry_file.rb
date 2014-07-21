@@ -95,8 +95,8 @@ module Kancolle
     end
     # 弾薬
     def lost_bulls
-      max_bull = Array.new(6).map{nil}
-      now_bull = Array.new(6).map{nil}
+      max_bull = Array.new(6).map{0}
+      now_bull = Array.new(6).map{0}
       # MAXのスロット数合計
       @start2_json["api_data"]["api_mst_ship"].each do |def_kanmusu|
         names.each_with_index do |name, i|
