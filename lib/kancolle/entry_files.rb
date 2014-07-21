@@ -37,10 +37,10 @@ module Kancolle
       @entry_files.length
     end
     # ボーキサイト
-    def bauxites
+    def lost_bauxites
       bau = Array.new
       @entry_files.each do |entry_file|
-        bau.push(entry_file.bauxite)
+        bau.push(entry_file.lost_bauxites)
       end
       return bau
     end

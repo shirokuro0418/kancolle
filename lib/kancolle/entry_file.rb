@@ -65,7 +65,7 @@ module Kancolle
           end
         end
       end
-      max_onslot.map.with_index{|slot, i| (slot - now_onslot[i]) * 5}
+      max_onslot.select{|d| d unless d.nil?}.map.with_index{|slot, i| (slot - now_onslot[i]) * 5}
     end
     # 燃料
     def lost_fuels
