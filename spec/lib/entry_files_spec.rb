@@ -92,10 +92,10 @@ describe EntryFiles do
         expect(hantei[1]).not_to eq ["勝利S", "勝利B"]
       end
     end
-    describe '.day' do
-      subject(:day) { @entry_files.day }
-      it 'has Array class' do
-        expect(day).to be_an_instance_of Array
+    describe '.today' do
+      subject(:today) { @entry_files.today }
+      it 'has EntryFiles class' do
+        expect(today).to be_an_instance_of EntryFiles
       end
     end
   end
