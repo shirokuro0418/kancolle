@@ -66,6 +66,11 @@ module Kancolle
       @entry_files.each {|entry_file| hantei.push(entry_file.hantei)}
       return hantei
     end
+    # 今日の出撃
+    def day
+      @entry_files.
+        select{ |entry_file| Date.today == Date.parse(entry_file.start.sub(/^.*\//, '').sub(/_.*json$/, '')) }
+    end
     ##################################################################
     # end インスタンスメソッド                                       #
     ##################################################################
