@@ -46,7 +46,7 @@ module Kancolle
           if file =~ /_SLOTITEM_MEMBER.json$/
             slotitem_member_file = dir.path.sub(/[^\/]$/, '\&/') + file # SLOTITEM_MEMBERの輸出
             if end_slotitem_flg
-              e_end_slotitem_member_file = slotitem_member
+              e_end_slotitem_member_file = slotitem_member_file
               end_slotitem_flg = false
             end
           end

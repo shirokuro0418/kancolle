@@ -11,7 +11,7 @@ module Kancolle
     #                    [ :battle_result   ]
     # @start2          @start[x]をkeyとしたSTART2.jsonのファイルパス
     # @slotitem_member 〃                  SLOTITEM_BEMBER.jsonのファイルパス
-    attr_reader :start, :file, :start2, :slotitem_member, :port
+    attr_reader :start, :file, :start2, :slotitem_member, :port, :end_port, :end_slotitem_member
 
     def initialize(datas = {})
       super(datas)
