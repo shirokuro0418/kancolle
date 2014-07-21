@@ -86,7 +86,7 @@ describe EntryFile do
       expect(names).to eq ['あきつ丸改','扶桑改','利根改二','羽黒改二','大鳳改','瑞鶴改']
     end
   end
-  describe 'hantei' do
+  describe '.hantei' do
     let(:hantei) {@entry_file.hantei}
 
     it "has ['勝利S', nil, '勝利S', nil, '勝利S']" do
