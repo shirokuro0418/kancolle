@@ -48,6 +48,10 @@ module Kancolle
     def lost_fuels
       @entry_files.map{|entry_file| entry_file.lost_fuels}
     end
+    # 弾薬
+    def lost_bulls
+      @entry_files.map{|entry_file| entry_file.lost_bulls}
+    end
     # ルート
     def routes
       routes = Array.new
