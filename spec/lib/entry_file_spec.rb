@@ -11,22 +11,22 @@ describe EntryFile do
   before(:all) { @entry_file = FindEntryFile::parse_for_dir(dir).entry_files[0] }
   # ファイルの検査
   describe 'インスタンス変数' do
-    it '.start is dir + 2014-07-20_165501.969_START.json' do
+    it '.start is 2014-07-20_165501.969_START.json' do
       expect(@entry_file.start).to eq  dir + "/2014-07-20_165501.969_START.json"
     end
-    it ".start2 2014-07-19_221912.500_START2.json" do
+    it ".start2 is 2014-07-19_221912.500_START2.json" do
       expect(@entry_file.start2).to eq  dir + "/2014-07-19_221912.500_START2.json"
     end
-    it ".slotitem_member 2014-07-20_165402.897_SLOTITEM_MEMBER.json" do
+    it ".slotitem_member is 2014-07-20_165402.897_SLOTITEM_MEMBER.json" do
       expect(@entry_file.slotitem_member).to eq  dir + "/2014-07-20_165402.897_SLOTITEM_MEMBER.json"
     end
-    it ".port 2014-07-20_165455.961_PORT.json" do
+    it ".port is 2014-07-20_165455.961_PORT.json" do
       expect(@entry_file.port).to eq  dir + "/2014-07-20_165455.961_PORT.json"
     end
-    it ".end_port 2014-07-20_170023.216_PORT.json" do
+    it ".end_port is 2014-07-20_170023.216_PORT.json" do
       expect(@entry_file.end_port).to eq  dir + "/2014-07-20_170023.216_PORT.json"
     end
-    it ".end_slotitem_member 2014-07-20_170022.214_SLOTITEM_MEMBER.json" do
+    it ".end_slotitem_member is 2014-07-20_170022.214_SLOTITEM_MEMBER.json" do
       expect(@entry_file.end_slotitem_member).to eq  dir + "/2014-07-20_170022.214_SLOTITEM_MEMBER.json"
     end
   end
@@ -34,13 +34,11 @@ describe EntryFile do
 
   # メソッド
   describe '.map' do
-    let(:map) { @entry_file.map }
-    it 'has [5,4]' do
-      expect(map).to eq([5,4])
-    end
+    subject(:map) { @entry_file.map }
+    it { expect(map).to eq([5,4]) }
   end
   describe '.lvs' do
-    let(:lvs) { @entry_file.lvs }
+    subject(:lvs) { @entry_file.lvs }
     it "has [39,82,96,87,135,80]" do
       expect(lvs).to eq [39,82,96,87,135,80]
     end
