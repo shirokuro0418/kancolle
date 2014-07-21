@@ -52,6 +52,10 @@ describe "EntryFile" do
     entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
     expect(entry_file.lost_fuels.inject(:+)).to eq 295
   end
+  it "is 285 for lost_bull" do
+    entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
+    expect(entry_file.lost_bull.inject(:+)).to eq 285
+  end
   it "is [1,8,17,18,19] for routes" do
     entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
     expect(entry_file.route).to eq [1, 8, 17, 18, 19]
