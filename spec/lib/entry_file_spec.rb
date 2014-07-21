@@ -37,7 +37,7 @@ describe "EntryFile" do
   end
   it "is 100 for bauxite" do
     entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
-    expect(entry_file.bauxite).to eq  100
+    expect(entry_file.bauxite.inject(:+)).to eq  100
   end
   it "is 295 for lost_fuels" do
     entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
