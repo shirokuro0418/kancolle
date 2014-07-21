@@ -7,4 +7,4 @@ require "kancolle"
 include Kancolle
 
 stage = FindEntryFile::parse_for_dir(ARGV[0])
-p stage.today.lost_bulls.flatten.inject(:+)
+p stage.day(Date.parse("2014-7-21")).lost_bulls.flatten.inject(:+)

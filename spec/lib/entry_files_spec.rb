@@ -47,7 +47,7 @@ describe EntryFiles do
         end
       end
     end
-    describe '.bauxites' do
+    describe '.lost_bauxites' do
       subject(:bauxites) { @entry_files.lost_bauxites }
       it 'has 2 length' do
         expect(bauxites.length).to be == 2
@@ -60,6 +60,36 @@ describe EntryFiles do
       end
       it '[1] is not sum 100 in Array' do
         expect(bauxites[1].inject(:+)).not_to be == 100
+      end
+    end
+    describe '.lost_fuels' do
+      subject(:fuels) { @entry_files.lost_fuels }
+      it 'has 2 length' do
+        expect(fuels.length).to be == 2
+      end
+      it 'has Array class' do
+        expect(fuels).to be_an_instance_of Array
+      end
+      it '[0] is sum 295 in Array' do
+        expect(fuels[0].inject(:+)).to be == 295
+      end
+      it '[1] is not sum 295 in Array' do
+        expect(fuels[1].inject(:+)).not_to be == 295
+      end
+    end
+    describe '.bulls' do
+      subject(:bulls) { @entry_files.lost_bulls }
+      it 'has 2 length' do
+        expect(bulls.length).to be == 2
+      end
+      it 'has Array class' do
+        expect(bulls).to be_an_instance_of Array
+      end
+      it '[0] is sum 285 in Array' do
+        expect(bulls[0].inject(:+)).to be == 285
+      end
+      it '[1] is not sum 285 in Array' do
+        expect(bulls[1].inject(:+)).not_to be == 285
       end
     end
     describe '.names' do

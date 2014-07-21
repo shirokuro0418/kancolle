@@ -38,11 +38,7 @@ module Kancolle
     end
     # ボーキサイト
     def lost_bauxites
-      bau = Array.new
-      @entry_files.each do |entry_file|
-        bau.push(entry_file.lost_bauxites)
-      end
-      return bau
+      @entry_files.map{|entry_file| entry_file.lost_bauxites}
     end
     # 燃料
     def lost_fuels
@@ -79,6 +75,13 @@ module Kancolle
       EntryFiles.new(@entry_files.
                      select{ |entry_file|
                        Date.today == Date.parse(entry_file.start.sub(/^.*\//, '').sub(/_.*json$/, ''))
+                     })
+    end
+    # 日付指定 Dateクラスを引数に
+    def day(date)
+      EntryFiles.new(@entry_files.
+                     select{ |entry_file|
+                       date == Date.parse(entry_file.start.sub(/^.*\//, '').sub(/_.*json$/, ''))
                      })
     end
     ##################################################################
