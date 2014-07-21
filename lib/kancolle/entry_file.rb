@@ -100,6 +100,26 @@ module Kancolle
       end
       max_fuel.map.with_index{|m_fuel, i| m_fuel - now_fuel[i]}
     end
+    # 弾薬
+    def lost_bull
+      max_bull = Array.new(6).map{nil}
+      now_bull = Array.new(6).map{nil}
+      # MAXのスロット数合計
+      @start2_json["api_data"]["api_mst_ship"].each do |def_kanmusu|
+        names.each_with_index do |name, i|
+          max_onslot[i] = def_kanmusu["api_bull_max"] if def_kanmusu["api_name"] == name
+        end
+      end
+      # 現在のスロット数合計
+      @end_port_json["api_data"]["api_ship"].each do |kanmusu|
+        ids.each_with_index do |id, i|
+          if kanmusu["api_id"] == id
+            now_onslot[i] = kanmusu["api_bull"]
+          end
+        end
+      end
+      max_bull.map.with_index{|slot, i| slot - now_bull[i]}
+    end
     # ルート
     def route
       route = Array.new
