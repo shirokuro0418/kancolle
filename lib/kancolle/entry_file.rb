@@ -17,12 +17,14 @@ module Kancolle
       super(datas)
 
       # それぞれ使うときに一度だけ読み込む
-      @json_data            = Hash.new
-      @start_json           = lambda {|x=nil| return return_json(:start, x) }
-      @start2_json          = lambda {|x=nil| return return_json(:start2, x) }
-      @port_json            = lambda {|x=nil| return return_json(:port, x) }
-      @slotitem_member_json = lambda {|x=nil| return return_json(:slotitem_member, x) }
-      @file_json            = lambda {|x=nil| return return_json(:file, x) }
+      @json_data                = Hash.new
+      @start_json               = lambda {|x=nil| return return_json(:start, x) }
+      @start2_json              = lambda {|x=nil| return return_json(:start2, x) }
+      @port_json                = lambda {|x=nil| return return_json(:port, x) }
+      @slotitem_member_json     = lambda {|x=nil| return return_json(:slotitem_member, x) }
+      @file_json                = lambda {|x=nil| return return_json(:file, x) }
+      @end_port_json            = lambda {|x=nil| return return_json(:end_port, x) }
+      @end_slotitem_member_json = lambda {|x=nil| return return_json(:end_port, x) }
     end
 
     ##################################################################
@@ -185,6 +187,8 @@ module Kancolle
           end
           @json_data[key][i] = mass_json
         end
+      when :end_port
+        open(@start2) {|j| @json_data[key] = JSON::parse(j.read)}
       end
     end
 

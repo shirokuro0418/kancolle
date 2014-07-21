@@ -25,6 +25,15 @@ describe "EntryFile" do
     entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
     expect(entry_file.port).to eq  dir + "/2014-07-20_165455.961_PORT.json"
   end
+  it "is 2014-07-20_170023.216_PORT.json for end_port_file" do
+    entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
+    expect(entry_file.end_port).to eq  dir + "/2014-07-20_170023.216_PORT.json"
+  end
+  it "is 2014-07-20_170022.214_SLOTITEM_MEMBER.json for end_slotitem_member_file" do
+    entry_file =  FindEntryFile::parse_for_dir(dir).entry_files[0]
+    expect(entry_file.end_slotitem_member).to eq  dir + "/2014-07-20_170022.214_SLOTITEM_MEMBER.json"
+  end
+
 
   # メソッド
   it "is [5,4] for map" do

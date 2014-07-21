@@ -56,13 +56,13 @@ module Kancolle
 
           if file =~ /_START.json$/
             unless syutugeki_arr.nil?
-              entryfiles.push(EntryFile.new({ "start"                 => e_start_file,
-                                              "file"                  => syutugeki_arr,
-                                              "start2"                => e_start2_file,
-                                              "slotitem_member"       => e_slotitem_member_file,
-                                              "port"                  => e_port_file,
-                                              "end_port"              => e_end_port_file,
-                                              "e_end_slotitem_member" => e_end_slotitem_member_file
+              entryfiles.push(EntryFile.new({ "start"               => e_start_file,
+                                              "file"                => syutugeki_arr,
+                                              "start2"              => e_start2_file,
+                                              "slotitem_member"     => e_slotitem_member_file,
+                                              "port"                => e_port_file,
+                                              "end_port"            => e_end_port_file,
+                                              "end_slotitem_member" => e_end_slotitem_member_file
                                             }))
             end
             e_start_file               = dir.path.sub(/[^\/]$/, '\&/') + file
@@ -103,13 +103,13 @@ module Kancolle
           end
         end
         unless syutugeki_arr.nil?
-          entryfiles.push(EntryFile.new({ "start"                 => e_start_file,
-                                          "file"                  => syutugeki_arr,
-                                          "start2"                => e_start2_file,
-                                          "slotitem_member"       => e_slotitem_member_file,
-                                          "port"                  => e_port_file,
-                                          "end_port"              => e_end_port_file,
-                                          "e_end_slotitem_member" => e_end_slotitem_member_file
+          entryfiles.push(EntryFile.new({ "start"               => e_start_file,
+                                          "file"                => syutugeki_arr,
+                                          "start2"              => e_start2_file,
+                                          "slotitem_member"     => e_slotitem_member_file,
+                                          "port"                => e_port_file,
+                                          "end_port"            => e_end_port_file,
+                                          "end_slotitem_member" => e_end_slotitem_member_file
                                         }))
         end
       end
