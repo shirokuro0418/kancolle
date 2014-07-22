@@ -27,6 +27,7 @@ module Kancolle
       @end_slotitem_member_json = lambda {|x=nil| return return_json(:end_slotitem_member, x) }
       # portの艦娘のidに対する配列の位置
       @port_kanmusu_iti         = Kanmusu::port_kanmusu_iti
+      @port_kanmusu_iti_last_id = Kanmusu::port_kanmusu_iti_last_id
     end
 
     ##################################################################
@@ -54,17 +55,10 @@ module Kancolle
       max_onslot = Array.new(6).map{0}
       now_onslot = Array.new(6).map{0}
       # MAXのスロット数合計 lv 10未満は飛ばす
-      s_kanmusu = @port_json["api_data"]["api_ship"]
-      ids.each_with_index do |id, i|
-        next if lvs[i] < 10
-        max_onslot[i] = s_kanmusu[@port_kanmusu_iti[id]]["api_onslot"].inject(:+)
-      end
+      lost_resources!(max_onslot, @port_json, "api_onslot")
       # 現在のスロット数合計 lv 10未満は飛ばす
-      e_kanmusu = @end_port_json["api_data"]["api_ship"]
-      ids.each_with_index do |id, i|
-        next if lvs[i] < 10
-        now_onslot[i] = e_kanmusu[@port_kanmusu_iti[id]]["api_onslot"].inject(:+)
-      end
+      lost_resources!(now_onslot, @end_port_json, "api_onslot")
+
       max_onslot.map.with_index{|slot, i| (slot - now_onslot[i]) * 5 unless slot.nil?}
     end
     # 燃料
@@ -72,17 +66,9 @@ module Kancolle
       now_fuels = Array.new(6).map{0}
       max_fuels = Array.new(6).map{0}
       # 出撃時の燃料 lv 10未満は飛ばす
-      s_kanmusu = @port_json["api_data"]["api_ship"]
-      ids.each_with_index do |id, i|
-        next if lvs[i] < 10
-        max_fuels[i] = s_kanmusu[@port_kanmusu_iti[id]]["api_fuel"]
-      end
+      lost_resources!(max_fuels, @port_json, "api_fuel")
       # 現在燃料 lv 10未満は飛ばす
-      e_kanmusu = @end_port_json["api_data"]["api_ship"]
-      ids.each_with_index do |id, i|
-        next if lvs[i] < 10
-        now_fuels[i] = e_kanmusu[@port_kanmusu_iti[id]]["api_fuel"]
-      end
+      lost_resources!(now_fuels, @end_port_json, "api_fuel")
       # ケッコン艦は15%off
       lvs.each_with_index do |lv, i|
         now_fuels[i] = (max_fuels[i] - ((max_fuels[i] - now_fuels[i]) * 0.85).to_i) if lv > 99
@@ -94,17 +80,9 @@ module Kancolle
       max_bull = Array.new(6).map{0}
       now_bull = Array.new(6).map{0}
       # 出撃時の弾薬 lv 10未満は飛ばす
-      s_kanmusu = @port_json["api_data"]["api_ship"]
-      ids.each_with_index do |id, i|
-        next if lvs[i] < 10
-        max_bull[i] = s_kanmusu[@port_kanmusu_iti[id]]["api_bull"]
-      end
+      lost_resources!(max_bull, @port_json, "api_bull")
       # 現在の弾薬 lv 10未満は飛ばす
-      e_kanmusu = @end_port_json["api_data"]["api_ship"]
-      ids.each_with_index do |id, i|
-        next if lvs[i] < 10
-        now_bull[i] = e_kanmusu[@port_kanmusu_iti[id]]["api_bull"]
-      end
+      lost_resources!(now_bull, @end_port_json, "api_bull")
       # ケッコン艦は15%off
       lvs.each_with_index do |lv, i|
         now_bull[i] = (max_bull[i] - ((max_bull[i] - now_bull[i]) * 0.85).to_i) if lv > 99
@@ -209,6 +187,30 @@ module Kancolle
         open(@end_port) {|j| @json_data[key] = JSON::parse(j.read)}
       when :end_slotitem_member
         open(@end_slotitem_member) {|j| @json_data[key] = JSON::parse(j.read)}
+      end
+    end
+    def lost_resources!(data, port_json, key)
+      kanmusu_json = port_json["api_data"]["api_ship"]
+      ids.each_with_index do |id, i|
+        next if lvs[i] < 10
+        if id > @port_kanmusu_iti_last_id
+          kanmusu_json.reverse_each do |kanmusu|
+            break if kanmusu["api_id"] <= @port_kanmusu_iti_last_id
+            if kanmusu["api_id"] == id
+              if kanmusu[key].is_a?(Array)
+                data[i] = kanmusu[key].inject(:+)
+              else
+                data[i] = kanmusu[key]
+              end
+            end
+          end
+        else
+          if kanmusu_json[@port_kanmusu_iti[id]][key].is_a?(Array)
+            data[i] = kanmusu_json[@port_kanmusu_iti[id]][key].inject(:+)
+          else
+            data[i] = kanmusu_json[@port_kanmusu_iti[id]][key]
+          end
+        end
       end
     end
 
