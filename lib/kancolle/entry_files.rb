@@ -64,6 +64,10 @@ module Kancolle
       end
       return names
     end
+    # 装備
+    def slots
+      @entry_files.map{|entry_file| entry_file.slots}
+    end
     # 判定
     def hantei
       hantei = Array.new
