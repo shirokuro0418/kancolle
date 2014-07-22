@@ -6,11 +6,23 @@ require "kancolle"
 
 include Kancolle
 
-stage = FindEntryFile::parse_for_dir(ARGV[0])
+stage = FindEntryFile::parse_for_dir
 start_time = Time.now
-puts "今日の消費"
-puts "燃料：#{stage.today.lost_fuels.flatten.inject(:+)}"
-puts "弾薬：#{stage.today.lost_bulls.flatten.inject(:+)}"
-puts "ボキ：#{stage.today.lost_bauxites.flatten.inject(:+)}"
 
-p "処理 #{Time.now - start_time}s"
+if ARGV[0].nil?
+  puts "今日の消費"
+  s = stage.today
+  puts "出撃回数：#{s.length}"
+  puts "燃料：#{s.lost_fuels.flatten.inject(:+)}"
+  puts "弾薬：#{s.lost_bulls.flatten.inject(:+)}"
+  puts "ボキ：#{s.lost_bauxites.flatten.inject(:+)}"
+else
+  puts "#{ARGV[0]}日前の消費"
+  s = stage.day(Date.today-ARGV[0].to_i)
+  puts "出撃回数：#{s.length}"
+  puts "燃料：#{s.lost_fuels.flatten.inject(:+)}"
+  puts "弾薬：#{s.lost_bulls.flatten.inject(:+)}"
+  puts "ボキ：#{s.lost_bauxites.flatten.inject(:+)}"
+end
+
+puts "処理時間 #{Time.now - start_time}s"
