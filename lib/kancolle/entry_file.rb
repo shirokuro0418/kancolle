@@ -25,6 +25,8 @@ module Kancolle
       @file_json                = lambda {|x=nil| return return_json(:file, x) }
       @end_port_json            = lambda {|x=nil| return return_json(:end_port, x) }
       @end_slotitem_member_json = lambda {|x=nil| return return_json(:end_slotitem_member, x) }
+      # portの艦娘のidに対する配列の位置
+      @port_kanmusu_iti         = Kanmusu::port_kanmusu_iti
     end
 
     ##################################################################
@@ -52,23 +54,16 @@ module Kancolle
       max_onslot = Array.new(6).map{0}
       now_onslot = Array.new(6).map{0}
       # MAXのスロット数合計 lv 10未満は飛ばす
-      kanmusu_iti = Array.new(6)
-      @port_json["api_data"]["api_ship"].each_with_index do |kanmusu, n|
-        ids.each_with_index do |id, i|
-          next if lvs[i] < 10
-          if kanmusu["api_id"] == id
-            kanmusu_iti[i] = n
-            max_onslot[i] = kanmusu["api_onslot"].inject(:+)
-          end
-        end
-      end
-      # 現在のスロット数合計 lv 10未満は飛ばす
-      kanmusu = @end_port_json["api_data"]["api_ship"]
+      s_kanmusu = @port_json["api_data"]["api_ship"]
       ids.each_with_index do |id, i|
         next if lvs[i] < 10
-        if kanmusu[kanmusu_iti[i]]["api_id"] == id
-          now_onslot[i] = kanmusu[kanmusu_iti[i]]["api_onslot"].inject(:+)
-        end
+        max_onslot[i] = s_kanmusu[@port_kanmusu_iti[id]]["api_onslot"].inject(:+)
+      end
+      # 現在のスロット数合計 lv 10未満は飛ばす
+      e_kanmusu = @end_port_json["api_data"]["api_ship"]
+      ids.each_with_index do |id, i|
+        next if lvs[i] < 10
+        now_onslot[i] = e_kanmusu[@port_kanmusu_iti[id]]["api_onslot"].inject(:+)
       end
       max_onslot.map.with_index{|slot, i| (slot - now_onslot[i]) * 5 unless slot.nil?}
     end
@@ -77,23 +72,16 @@ module Kancolle
       now_fuels = Array.new(6).map{0}
       max_fuels = Array.new(6).map{0}
       # 出撃時の燃料 lv 10未満は飛ばす
-      kanmusu_iti = Array.new(6)
-      @port_json["api_data"]["api_ship"].each_with_index do |kanmusu, n|
-        ids.each_with_index do |id, i|
-          next if lvs[i] < 10
-          if kanmusu["api_id"] == id
-            kanmusu_iti[i] = n
-            max_fuels[i] = kanmusu["api_fuel"]
-          end
-        end
-      end
-      # 現在燃料 lv 10未満は飛ばす
-      kanmusu = @end_port_json["api_data"]["api_ship"]
+      s_kanmusu = @port_json["api_data"]["api_ship"]
       ids.each_with_index do |id, i|
         next if lvs[i] < 10
-        if kanmusu[kanmusu_iti[i]]["api_id"] == id
-          now_fuels[i] = kanmusu[kanmusu_iti[i]]["api_fuel"]
-        end
+        max_fuels[i] = s_kanmusu[@port_kanmusu_iti[id]]["api_fuel"]
+      end
+      # 現在燃料 lv 10未満は飛ばす
+      e_kanmusu = @end_port_json["api_data"]["api_ship"]
+      ids.each_with_index do |id, i|
+        next if lvs[i] < 10
+        now_fuels[i] = e_kanmusu[@port_kanmusu_iti[id]]["api_fuel"]
       end
       # ケッコン艦は15%off
       lvs.each_with_index do |lv, i|
@@ -106,23 +94,16 @@ module Kancolle
       max_bull = Array.new(6).map{0}
       now_bull = Array.new(6).map{0}
       # 出撃時の弾薬 lv 10未満は飛ばす
-      kanmusu_iti = Array.new(6)
-      @port_json["api_data"]["api_ship"].each_with_index do |kanmusu, n|
-        ids.each_with_index do |id, i|
-          next if lvs[i] < 10
-          if kanmusu["api_id"] == id
-            kanmusu_iti[i] = n
-            max_bull[i] = kanmusu["api_bull"]
-          end
-        end
-      end
-      # 出撃時の弾薬 lv 10未満は飛ばす
-      kanmusu = @end_port_json["api_data"]["api_ship"]
+      s_kanmusu = @port_json["api_data"]["api_ship"]
       ids.each_with_index do |id, i|
         next if lvs[i] < 10
-        if kanmusu[kanmusu_iti[i]]["api_id"] == id
-          now_bull[i] = kanmusu[kanmusu_iti[i]]["api_bull"]
-        end
+        max_bull[i] = s_kanmusu[@port_kanmusu_iti[id]]["api_bull"]
+      end
+      # 現在の弾薬 lv 10未満は飛ばす
+      e_kanmusu = @end_port_json["api_data"]["api_ship"]
+      ids.each_with_index do |id, i|
+        next if lvs[i] < 10
+        now_bull[i] = e_kanmusu[@port_kanmusu_iti[id]]["api_bull"]
       end
       # ケッコン艦は15%off
       lvs.each_with_index do |lv, i|

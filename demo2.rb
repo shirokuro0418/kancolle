@@ -8,6 +8,9 @@ include Kancolle
 
 stage = FindEntryFile::parse_for_dir(ARGV[0])
 start_time = Time.now
-p stage.day(Date.parse("2014-7-21")).lost_bauxites.flatten.inject(:+)
+puts "今日の消費"
+puts "燃料：#{stage.today.lost_fuels.flatten.inject(:+)}"
+puts "弾薬：#{stage.today.lost_bulls.flatten.inject(:+)}"
+puts "ボキ：#{stage.today.lost_bauxites.flatten.inject(:+)}"
 
 p "処理 #{Time.now - start_time}s"

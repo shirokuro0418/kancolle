@@ -84,6 +84,16 @@ module Kancolle
                        date == Date.parse(entry_file.start.sub(/^.*\//, '').sub(/_.*json$/, ''))
                      })
     end
+    # 期間指定 Dateクラスを引数に
+    def between_days(s_day, e_day)
+      if e_day < s_day
+        return EntryFile.new
+      else
+        EntryFiles.new(@entry_files.select{|entry_file|
+                         s_day <= Date.parse(entry_file.start.sub(/^.*\//, '').sub(/_.*json$/, '')) &&
+                         Date.parse(entry_file.start.sub(/^.*\//, '').sub(/_.*json$/, '')) <= e_day })
+      end
+    end
     ##################################################################
     # end インスタンスメソッド                                       #
     ##################################################################
