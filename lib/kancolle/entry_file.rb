@@ -119,6 +119,22 @@ module Kancolle
       end
       return names
     end
+    # 装備名
+    def slots
+      slot_ids = Array.new(6).map{nil}
+      ids.each_with_index do |id, i|
+        slot_ids[i] = port_ship(id, "api_slot")
+      end
+
+      slot_names = Array.new(6).map{Array.new(5)}
+      slot_ids.each_with_index do |kanmusu_slot, i|
+        kanmusu_slot.each_with_index do |slot_id, j|
+          slot_names[i][j] = start2_slotitem(slot_id)
+        end
+      end
+
+      return slot_names
+    end
     # 勝利判定
     def hantei
       hantei = Array.new
@@ -211,6 +227,39 @@ module Kancolle
             data[i] = kanmusu_json[@port_kanmusu_iti[id]][key]
           end
         end
+      end
+    end
+    # portファイルのspi_shipからデータを取得
+    def port_ship(id, key)
+      if id > @port_kanmusu_iti_last_id
+        @port_json["api_data"]["api_ship"].reverse_each do |kanmusu|
+          if kanmusu["api_id"] == id
+            return kanmusu[key]
+          end
+        end
+      else
+        @port_json["api_data"]["api_ship"][@port_kanmusu_iti[id]][key]
+      end
+    end
+    # 現在は 名前だけ
+    def start2_slotitem(id)
+      if id > Kanmusu::start2_slot_iti_last_id
+        sortno = nil
+        @slotitem_member_json["api_data"].reverse_each do |slot|
+           if slot["api_id"] == id
+             sortno = slot["api_slotitem_id"]
+             break
+           end
+        end
+        @start2_json["api_data"]["api_mst_slotitem"].reverse_each do |slot|
+          if slot["api_sortno"] == sortno
+            return slot["api_name"]
+          end
+        end
+      elsif id != -1
+        return Kanmusu::start2_slot_iti[id]
+      else
+        return -1
       end
     end
 

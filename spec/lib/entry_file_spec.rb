@@ -91,4 +91,14 @@ describe EntryFile do
       expect(hantei).to eq ['勝利S',nil,'勝利S', nil,'勝利S']
     end
   end
+  describe '.slots' do
+    subject(:slots) {@entry_file.slots}
+
+    it "はArrayである" do
+      expect(slots).to be_an_instance_of Array
+    end
+    it "は６つからなる" do
+      expect(slots.length).to eq 6
+    end
+  end
 end
