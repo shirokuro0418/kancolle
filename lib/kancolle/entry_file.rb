@@ -149,10 +149,10 @@ module Kancolle
     end
     # 砲撃１
     def hougeki1
-      hougeki1 = Array.new
+      hougeki = Array.new
       @file_json.call.each_with_index do |file_json, i|
         battle = Hash.new
-        if file_json[:battle].nil?
+        if file_json[:battle].nil? || file_json[:battle]["api_data"]["api_hourai_flag"][0] != 1
           battle = nil
         else
           file_json[:battle]["api_data"]["api_hougeki1"].each do |key, value|
@@ -162,7 +162,24 @@ module Kancolle
         end
         hougeki1[i] = battle
       end
-      hougeki1
+      hougeki
+    end
+    # 砲撃2
+    def hougeki2
+      hougeki = Array.new
+      @file_json.call.each_with_index do |file_json, i|
+        battle = Hash.new
+        if file_json[:battle].nil? || file_json[:battle]["api_data"]["api_hourai_flag"][0] != 1
+          battle = nil
+        else
+          file_json[:battle]["api_data"]["api_hougeki2"].each do |key, value|
+            value.shift
+            battle[key.slice(4, key.length).to_sym] = value
+          end
+        end
+        hougeki1[i] = battle
+      end
+      hougeki
     end
 
     private
