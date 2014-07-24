@@ -128,11 +128,14 @@ module Kancolle
 
       slot_names = Array.new(6).map{Array.new(5)}
       slot_ids.each_with_index do |kanmusu_slot, i|
-        kanmusu_slot.each_with_index do |slot_id, j|
-          slot_names[i][j] = start2_slotitem(slot_id)
+        if kanmusu_slot.nil?
+          slot_names[i] = nil
+        else
+          kanmusu_slot.each_with_index do |slot_id, j|
+            slot_names[i][j] = start2_slotitem(slot_id)
+          end
         end
       end
-
       return slot_names
     end
     # 勝利判定
@@ -182,18 +185,20 @@ module Kancolle
     end
     # 連撃
     def rengeki
-      h1 = hougeki1
-      h2 = hougeki2
-
+      kanmusu_rengeki = rengeki_at_stage
+      kanmusu_rengeki.map{|rengeki| rengeki.inject(:+) }
+    end
+    def rengeki_at_stage
       kanmusu_rengeki = Array.new(6).map{Array.new(@file.length).map{0}}
-      for i in 0..h1.length-1
-        next if h1[i].nil?
-        # 連撃をし、攻撃が味方の場合
-        p h1[i][:damage]
-        for j in 0..h1[i][:cl_list].length-1
-          p (h1[i][:at_list][j]-1).to_s + " " + i.to_s + "だめーじ" + h1[i][:damage][j].to_s
-          if h1[i][:damage][j].length == 2 && (1 <= h1[i][:at_list][j] && h1[i][:at_list][j] <= 6)
-            kanmusu_rengeki[h1[i][:at_list][j]-1][i] += 1
+
+      [ hougeki1, hougeki2 ].each do |hou|
+        for i in 0..hou.length-1
+          next if hou[i].nil?
+          # 連撃をし、攻撃が味方の場合
+          for j in 0..hou[i][:cl_list].length-1
+            if hou[i][:damage][j].length == 2 && (1 <= hou[i][:at_list][j] && hou[i][:at_list][j] <= 6)
+              kanmusu_rengeki[hou[i][:at_list][j]-1][i] += 1
+            end
           end
         end
       end
@@ -269,6 +274,8 @@ module Kancolle
             return kanmusu[key]
           end
         end
+      elsif id == -1
+        return nil
       else
         @port_json["api_data"]["api_ship"][@port_kanmusu_iti[id]][key]
       end
@@ -291,7 +298,7 @@ module Kancolle
       elsif id != -1
         return Kanmusu::start2_slot_iti[id]
       else
-        return -1
+        return nil
       end
     end
 

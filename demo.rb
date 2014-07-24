@@ -8,6 +8,8 @@ include Kancolle
 
 stage = FindEntryFile::parse_for_dir(ARGV[0])
 
+stage.extract_stage(5,4).slots.each{|names| p names}
+
 # p stage.length
 # p stage.extract_stage(5, 4).length # 5-4に出撃した回数
 # p stage.extract_stage(5, 4).bauxites # 5-4のボーキ数(Array)
@@ -15,8 +17,8 @@ stage = FindEntryFile::parse_for_dir(ARGV[0])
 # p stage_5_4.bauxites
 # p stage_5_4.entry_files[0].hantei
 # p stage_5_4.hantei.length
-p stage.extract_stage(1,4).lost_bauxites
-p stage.extract_stage(1,4).slots
+# p stage.extract_stage(1,4).lost_bauxites
+# p stage.extract_stage(1,4).slots
 
 # stage_5_4.entry_files[0].file.each {|file| p file[:next] }
 #p stage_5_4.length # 5-4かつ、ルートを指定した出撃数
