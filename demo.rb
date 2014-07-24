@@ -6,7 +6,6 @@ require "kancolle"
 
 include Kancolle
 
-## 5-4のファイルを出力
 stage = FindEntryFile::parse_for_dir(ARGV[0])
 
 # p stage.length
