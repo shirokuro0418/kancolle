@@ -111,4 +111,25 @@ describe EntryFile do
       expect(hougeki1.length).to eq 5
     end
   end
+  describe '.hougeki2' do
+    subject(:hougeki1) {@entry_file.hougeki1}
+
+    it 'はArrayである' do
+      expect(hougeki1).to be_an_instance_of Array
+    end
+    it 'は５つからなる' do
+      expect(hougeki1.length).to eq 5
+    end
+  end
+  describe '.rengeki' do
+    subject(:rengeki) {@entry_file.rengeki}
+
+    it 'はArrayである' do
+      expect(rengeki).to be_an_instance_of Array
+    end
+    it 'は６つからなる' do
+      expect(rengeki.length).to eq 6
+    end
+  end
+
 end

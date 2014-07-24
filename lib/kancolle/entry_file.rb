@@ -149,60 +149,58 @@ module Kancolle
     end
     # 砲撃１
     def hougeki1
-      hougeki = Array.new
+      hou = Array.new
       @file_json.call.each_with_index do |file_json, i|
         battle = Hash.new
         if file_json[:battle].nil? || file_json[:battle]["api_data"]["api_hourai_flag"][0] != 1
           battle = nil
         else
           file_json[:battle]["api_data"]["api_hougeki1"].each do |key, value|
-            value.shift
-            battle[key.slice(4, key.length).to_sym] = value
+            battle[key.slice(4, key.length).to_sym] = value.select{|v| v != -1 }
           end
         end
-        hougeki1[i] = battle
+        hou[i] = battle
       end
-      hougeki
+      hou
     end
     # 砲撃2
     def hougeki2
-      hougeki = Array.new
+      hou = Array.new
       @file_json.call.each_with_index do |file_json, i|
         battle = Hash.new
-        if file_json[:battle].nil? || file_json[:battle]["api_data"]["api_hourai_flag"][0] != 1
+        if file_json[:battle].nil? || file_json[:battle]["api_data"]["api_hourai_flag"][1] != 1
           battle = nil
         else
           file_json[:battle]["api_data"]["api_hougeki2"].each do |key, value|
             value.shift
-            battle[key.slice(4, key.length).to_sym] = value
+            battle[key.slice(4, key.length).to_sym] = value.select{|v| v != -1 }
           end
         end
-        hougeki1[i] = battle
+        hou[i] = battle
       end
-      hougeki
+      hou
+    end
+    # 連撃
+    def rengeki
+      h1 = hougeki1
+      h2 = hougeki2
+
+      kanmusu_rengeki = Array.new(6).map{Array.new(@file.length).map{0}}
+      for i in 0..h1.length-1
+        next if h1[i].nil?
+        # 連撃をし、攻撃が味方の場合
+        p h1[i][:damage]
+        for j in 0..h1[i][:cl_list].length-1
+          p (h1[i][:at_list][j]-1).to_s + " " + i.to_s + "だめーじ" + h1[i][:damage][j].to_s
+          if h1[i][:damage][j].length == 2 && (1 <= h1[i][:at_list][j] && h1[i][:at_list][j] <= 6)
+            kanmusu_rengeki[h1[i][:at_list][j]-1][i] += 1
+          end
+        end
+      end
+      kanmusu_rengeki
     end
 
     private
-    # JSONを読み込み
-    # def json_read
-    #   open(@start) {|p| @start_json  = JSON::parse(p.read)} if @start_json.empty?
-    #   open(@start2){|p| @start2_json = JSON::parse(p.read)} if @start2_json.empty?
-    #   open(@port)  {|p| @port_json   = JSON::parse(p.read)} if @port_json.empty?
-    #   open(@slotitem_member){|p| @slotitem_member_json = JSON::parse(p.read)} if @slotitem_member_json.empty?
-    #   if @file_json.empty?
-    #     @file.each_with_index do |mass, i|
-    #       mass_json = Hash.new
-    #       mass.each do |key, value|
-    #         unless value.nil?
-    #           open(value){|j| mass_json[key] = JSON::parse(j.read)}
-    #         else
-    #           mass_json[key] = nil
-    #         end
-    #       end
-    #       @file_json[i] = mass_json
-    #     end
-    #   end
-    # end
     def ids
       @port_json["api_data"]["api_deck_port"][0]["api_ship"]
     end
