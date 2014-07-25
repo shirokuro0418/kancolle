@@ -98,6 +98,11 @@ module Kancolle
                          Date.parse(entry_file.start.sub(/^.*\//, '').sub(/_.*json$/, '')) <= e_day })
       end
     end
+
+    # nil?
+    def empty?
+      @entry_files.empty?
+    end
     ##################################################################
     # end インスタンスメソッド                                       #
     ##################################################################

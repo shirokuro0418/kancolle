@@ -19,7 +19,7 @@ puts "---------------------------------------------------------"
 puts "|\t|日前\t|出撃回数\t|燃料\t|弾薬\t|ボーキ\t|"
 puts "---------------------------------------------------------"
 for i in 0..6
-   s = stage.day(Date.today-i)
+  next if (s = stage.day(Date.today-i)).empty?
 
   d_fuel = s.lost_fuels.flatten.inject(:+)
   d_bull = s.lost_bulls.flatten.inject(:+)
