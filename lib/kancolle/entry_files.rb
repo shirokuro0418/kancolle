@@ -70,7 +70,11 @@ module Kancolle
     end
     # 航戦形態
     def battle_forms
-      p @entry_files.map{|entry_file| entry_file.battle_forms}
+      @entry_files.map{|entry_file| entry_file.battle_forms}
+    end
+    # 制空権
+    def seiku
+      @entry_files.map{|entry_file| entry_file.seiku}
     end
     # 判定
     def hantei
@@ -98,11 +102,18 @@ module Kancolle
         return EntryFile.new
       else
         EntryFiles.new(@entry_files.select{|entry_file|
-                         s_day <= Date.parse(entry_file.start.sub(/^.*\//, '').sub(/_.*json$/, '')) &&
-                         Date.parse(entry_file.start.sub(/^.*\//, '').sub(/_.*json$/, '')) <= e_day })
+                         entry_file_day = Date.parse(entry_file.start.sub(/^.*\//, '').sub(/_.*json$/, ''))
+                         s_day <= entry_file_day && entry_file_day <= e_day })
       end
     end
 
+    # ぷっしゅ
+    def push(entry_files)
+      entry_files.entry_files.each do |entry_file|
+        @entry_files.push(entry_file)
+      end
+      @entry_files.sort!{|a, b| a.start <=> b.start}
+    end
     # nil?
     def empty?
       @entry_files.empty?

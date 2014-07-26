@@ -2,11 +2,6 @@
 ## インスタンスメソッド
 module Kancolle
   class FindEntryFile
-    # def initialize(dir = nil)
-    #   datas = find_entry_file_for_dir(dir)
-    #   super(datas)
-    # end
-
     public
 
     ## dirからEntryFile郡を作る

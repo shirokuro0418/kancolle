@@ -204,7 +204,7 @@ module Kancolle
       end
       kanmusu_rengeki
     end
-    # 戦闘形態(確保、優勢・・・)
+    # 交戦形態
     def battle_forms
       forms = Array.new
       @file_json.call.each do |file_json|
@@ -227,6 +227,36 @@ module Kancolle
           forms.push(nil)
         end
       end
+      forms
+    end
+    # 制空権
+    def seiku
+      seiku = Array.new
+      @file_json.call.each do |file_json|
+        unless file_json[:battle].nil?
+          unless file_json[:battle]["api_data"]["api_stage_flag"][0] == 0
+            case file_json[:battle]["api_data"]["api_kouku"]["api_stage1"]["api_disp_seiku"]
+            when 0
+              kousen = "互角"
+            when 1
+              kousen = "制空権確保"
+            when 2
+              kousen = "航空優勢"
+            when 3
+              kousen = "航空劣勢"
+            when 4
+              kousen = "制空権消失"
+            else
+              kousen = "謎"
+            end
+
+            seiku.push(kousen)
+          end
+        else
+          seiku.push(nil)
+        end
+      end
+      seiku
     end
 
     private

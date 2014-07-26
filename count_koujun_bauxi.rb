@@ -9,7 +9,7 @@ stage = FindEntryFile::parse_for_dir(ARGV[0]).extract_stage(5,4)
 slots = stage.slots
 bauxi = stage.lost_bauxites
 names = stage.names
-p stage.battle_forms
+seiku = stage.seiku
 
 count_bauxi = 0
 count_syutu = 0
@@ -17,11 +17,14 @@ max_bauxi = 0
 min_bauxi = 20000
 
 slots.each_with_index do |start_slots, i|
-  if start_slots.to_s.include?("瑞雲12型") &&
-      names[i].to_s.include?("鈴谷改") ||
-      names[i].to_s.include?("熊野改") ||
-      names[i].to_s.include?("利根改二") ||
-      names[i].to_s.include?("筑摩改二")
+  if ( start_slots.to_s.include?("瑞雲12型") &&
+       start_slots.to_s.include?("15.5cm三連装副砲") ) &&
+      ( names[i].to_s.include?("鈴谷改")   ||
+        names[i].to_s.include?("熊野改")   ||
+        names[i].to_s.include?("利根改二") ||
+        names[i].to_s.include?("筑摩改二") )   &&
+      !( seiku[i].to_s.include?("航空優勢") )
+
     count_syutu += 1
     puts "#{count_syutu}回目"
 

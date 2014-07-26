@@ -141,6 +141,16 @@ describe EntryFile do
       expect(battle_forms.length).to eq 5
     end
   end
+  describe '.seiku' do
+    subject(:seiku) {@entry_file.seiku}
+
+    it 'はArrayである' do
+      expect(seiku).to be_an_instance_of Array
+    end
+    it 'は５つからなる' do
+      expect(seiku.length).to eq 5
+    end
+  end
 
 
 end
