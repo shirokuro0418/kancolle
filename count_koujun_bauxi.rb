@@ -9,6 +9,7 @@ stage = FindEntryFile::parse_for_dir(ARGV[0]).extract_stage(5,4)
 slots = stage.slots
 bauxi = stage.lost_bauxites
 names = stage.names
+p stage.battle_forms
 
 count_bauxi = 0
 count_syutu = 0

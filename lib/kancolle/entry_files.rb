@@ -68,6 +68,10 @@ module Kancolle
     def slots
       @entry_files.map{|entry_file| entry_file.slots}
     end
+    # 航戦形態
+    def battle_forms
+      p @entry_files.map{|entry_file| entry_file.battle_forms}
+    end
     # 判定
     def hantei
       hantei = Array.new
