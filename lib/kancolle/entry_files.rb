@@ -58,11 +58,10 @@ module Kancolle
     end
     # 名前
     def names
-      names = Array.new
-      @entry_files.each do |entry_file|
-        names.push(entry_file.names)
-      end
-      return names
+      @entry_files.map{|entry_file| entry_file.names}
+    end
+    def names_low
+      @entry_files.map{|entry_file| entry_file.names_low}
     end
     # 装備
     def slots
@@ -112,7 +111,7 @@ module Kancolle
       entry_files.entry_files.each do |entry_file|
         @entry_files.push(entry_file)
       end
-      @entry_files.sort!{|a, b| a.start <=> b.start}
+      @entry_files.sort!{|a, b| a.start.split('/').last <=> b.start.split('/').last}
     end
     # nil?
     def empty?

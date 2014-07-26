@@ -30,7 +30,7 @@ module Kancolle
         e_end_slotitem_member_file = nil
 
         dir.sort.each do |file|
-          start2_file          = dir.path.sub(/[^\/]$/, '\&/') + file if file =~ /_START2.json$/ # start2ファイルの抽出
+          start2_file = dir.path.sub(/[^\/]$/, '\&/') + file if file =~ /_START2.json$/ # start2ファイルの抽出
           if file =~ /_PORT.json$/
             port_file            = dir.path.sub(/[^\/]$/, '\&/') + file  # portファイルの輸出
             if end_port_flg
@@ -69,6 +69,8 @@ module Kancolle
             e_end_port_file            = nil
             e_end_slotitem_member_file = nil
             syutugeki_arr              = Array.new
+            next_file                  = nil
+            ship2_file                 = nil
           end
 
           # nextファイルからステージ情報の輸出
@@ -79,6 +81,10 @@ module Kancolle
                                    :next            => next_file,
                                    :ship2           => ship2_file,
                                  })
+            end
+            # 初戦渦潮とか資源マスの場合
+            if syutugeki_arr.empty?
+              syutugeki_arr.push({})
             end
             next_file = dir.path.sub(/[^\/]$/, '\&/') + file
           end

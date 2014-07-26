@@ -99,25 +99,51 @@ module Kancolle
       tmp_file.each do |file_json|
         route.push(file_json[:next]["api_data"]["api_no"])
       end
-      return route
+      route
     end
     # 名前
     def names
-      names        = Array.new(6).map{nil}
-      id_names     = Array.new(6).map{nil}
-      sortno_names = Array.new(6).map{nil}
-      id_names = @port_json["api_data"]["api_deck_port"][0]["api_ship"]
-      @port_json["api_data"]["api_ship"].each do |kanmusu|
-        id_names.each_with_index do |id_name, i|
-          sortno_names[i] = kanmusu["api_sortno"] if id_name == kanmusu["api_id"]
+      names = Array.new(6).map{nil}
+
+      ids.each_with_index do |id, i|
+        if id == -1
+          next
+        elsif !(names[i] = Kanmusu::kanmusu_names[id]).nil?
+        else
+          sortno = nil
+          @port_json["api_data"]["api_ship"].reverse_each do |kanmusu|
+             if id == kanmusu["api_id"]
+               sortno = kanmusu["api_sortno"]
+               break
+             end
+          end
+          @start2_json["api_data"]["api_mst_ship"].reverse_each do |kanmusu|
+            if sortno == kanmusu["api_sortno"]
+              names[i] = kanmusu["api_name"]
+              Kanmusu::kanmusu_names_push(id,kanmusu["api_name"])
+              if kanmusu["api_name"] =~ /伊/
+                p id,kanmusu["api_name"]
+              end
+              break
+            end
+          end
         end
       end
-      @start2_json["api_data"]["api_mst_ship"].each do |kanmusu|
-        sortno_names.each_with_index do |sortno_name, i|
-          names[i] = kanmusu["api_name"] if sortno_name == kanmusu["api_sortno"]
+      names
+    end
+    # 改、改二のみ 阿武隈は例外
+    def names_low
+      names = Array.new(6).map{nil}
+
+      ids.each_with_index do |id, i|
+        if id == -1
+          next
+        elsif (name=Kanmusu::kanmusu_names[id]) =~ /改/ || name =~ /阿武隈/
+          names[i] = name
+        else
         end
       end
-      return names
+      names
     end
     # 装備名
     def slots
