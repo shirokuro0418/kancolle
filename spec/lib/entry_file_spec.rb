@@ -131,5 +131,16 @@ describe EntryFile do
       expect(rengeki.length).to eq 6
     end
   end
+  describe '.battle_forms' do
+    subject(:battle_forms) {@entry_file.battle_forms}
+
+    it 'はArrayである' do
+      expect(battle_forms).to be_an_instance_of Array
+    end
+    it 'は５つからなる' do
+      expect(battle_forms.length).to eq 5
+    end
+  end
+
 
 end

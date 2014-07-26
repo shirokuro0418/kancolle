@@ -102,15 +102,23 @@ module Kancolle
             battle_midnight_file = nil
           end
         end
-        unless syutugeki_arr.nil?
-          entryfiles.push(EntryFile.new({ "start"               => e_start_file,
-                                          "file"                => syutugeki_arr,
-                                          "start2"              => e_start2_file,
-                                          "slotitem_member"     => e_slotitem_member_file,
-                                          "port"                => e_port_file,
-                                          "end_port"            => e_end_port_file,
-                                          "end_slotitem_member" => e_end_slotitem_member_file
-                                        }))
+        unless
+            e_start_file.nil? ||
+            syutugeki_arr.nil? ||
+            e_start2_file.nil? ||
+            e_slotitem_member_file.nil? ||
+            e_port_file.nil? ||
+            e_end_port_file.nil? ||
+            e_end_slotitem_member_file.nil? ||
+            syutugeki_arr.nil?
+            entryfiles.push(EntryFile.new({ "start"               => e_start_file,
+                                            "file"                => syutugeki_arr,
+                                            "start2"              => e_start2_file,
+                                            "slotitem_member"     => e_slotitem_member_file,
+                                            "port"                => e_port_file,
+                                            "end_port"            => e_end_port_file,
+                                            "end_slotitem_member" => e_end_slotitem_member_file
+                                          }))
         end
       end
       return EntryFiles.new(entryfiles)

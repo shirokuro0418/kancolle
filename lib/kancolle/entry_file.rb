@@ -204,6 +204,30 @@ module Kancolle
       end
       kanmusu_rengeki
     end
+    # 戦闘形態(確保、優勢・・・)
+    def battle_forms
+      forms = Array.new
+      @file_json.call.each do |file_json|
+        unless file_json[:battle].nil?
+          case file_json[:battle]["api_data"]["api_formation"][2]
+          when 1
+            kousen = "同行戦"
+          when 2
+            kousen = "反航戦"
+          when 3
+            kousen = "T字有利"
+          when 4
+            kousen = "T字不利"
+          else
+            kousen = "謎"
+          end
+
+          forms.push(kousen)
+        else
+          forms.push(nil)
+        end
+      end
+    end
 
     private
     def ids
@@ -211,7 +235,11 @@ module Kancolle
     end
     def return_json(key, x)
       if @json_data[key].nil? then json_read(key) end
-      if x.nil? then return @json_data[key] else return @json_data[key][x] end
+      if x.nil?
+        @json_data[key]
+      else
+        @json_data[key][x]
+      end
     end
     def json_read(key)
       case key
