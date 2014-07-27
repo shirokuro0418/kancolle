@@ -50,11 +50,7 @@ module Kancolle
     end
     # ルート
     def routes
-      routes = Array.new
-      @entry_files.each do |entry_file|
-        routes.push(entry_file.route)
-      end
-      return routes
+      @entry_files.map{|entry_file| entry_file.route}
     end
     # 名前
     def names
@@ -74,6 +70,35 @@ module Kancolle
     # 制空権
     def seiku
       @entry_files.map{|entry_file| entry_file.seiku}
+    end
+    # 獲得経験値合計
+    def exps
+      @entry_files.map{|entry_file| entry_file.exps_low}
+    end
+    # 指定した艦のexp合計
+    def exp(name, name2 = nil)
+      s_exp = nil
+      e_exp = nil
+      @entry_files.each do |entry_file|
+        if entry_file.names.include?(name)
+          all_exps = entry_file.now_exps(:start)
+          num = nil
+          entry_file.names.each_with_index{|n,i| num = i if name == n}
+          s_exp = all_exps[num][0]
+          break
+        end
+      end
+      @entry_files.reverse_each do |entry_file|
+        name = name2 unless name2.nil?
+        if entry_file.names_low.include?(name)
+          all_exps = entry_file.now_exps(:end)
+          num = nil
+          entry_file.names_low.each_with_index{|n,i| num = i if name == n}
+          e_exp = all_exps[num][0]
+          break
+        end
+      end
+      e_exp - s_exp
     end
     # 判定
     def hantei
@@ -104,6 +129,29 @@ module Kancolle
                          entry_file_day = Date.parse(entry_file.start.sub(/^.*\//, '').sub(/_.*json$/, ''))
                          s_day <= entry_file_day && entry_file_day <= e_day })
       end
+    end
+    # 指定した艦のlvの変動
+    def lv(name, name2 = nil)
+      s_lv = nil
+      e_lv = nil
+      @entry_files.each do |entry_file|
+        if entry_file.names_low.include?(name)
+          num = nil
+          entry_file.names.each_with_index{|n,i| num = i if name == n}
+          s_lv = entry_file.lvs[num]
+          break
+        end
+      end
+      @entry_files.reverse_each do |entry_file|
+        name = name2 unless name2.nil?
+        if entry_file.names_low.include?(name)
+          num = nil
+          entry_file.names_low.each_with_index{|n,i| num = i if name == n}
+          e_lv = entry_file.lvs[num]
+          break
+        end
+      end
+      [s_lv, e_lv]
     end
 
     # ぷっしゅ

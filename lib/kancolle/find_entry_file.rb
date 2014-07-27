@@ -50,6 +50,13 @@ module Kancolle
           battle_midnight_file = dir.path.sub(/[^\/]$/, '\&/') + file if file =~ /_BATTLE_MIDNIGHT.json$/
 
           if file =~ /_START.json$/
+            unless next_file.nil?
+              syutugeki_arr.push({ :battle          => nil,
+                                   :battle_result   => nil,
+                                   :next            => next_file,
+                                   :ship2           => ship2_file,
+                                 })
+            end
             unless syutugeki_arr.nil?
               entryfiles.push(EntryFile.new({ "start"               => e_start_file,
                                               "file"                => syutugeki_arr,

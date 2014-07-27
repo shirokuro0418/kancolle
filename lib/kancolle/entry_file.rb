@@ -25,9 +25,6 @@ module Kancolle
       @file_json                = lambda {|x=nil| return return_json(:file, x) }
       @end_port_json            = lambda {|x=nil| return return_json(:end_port, x) }
       @end_slotitem_member_json = lambda {|x=nil| return return_json(:end_slotitem_member, x) }
-      # portの艦娘のidに対する配列の位置
-      @port_kanmusu_iti         = Kanmusu::port_kanmusu_iti
-      @port_kanmusu_iti_last_id = Kanmusu::port_kanmusu_iti_last_id
     end
 
     ##################################################################
@@ -40,15 +37,11 @@ module Kancolle
     end
     # レベル
     def lvs
-      lv = Array.new(6).map{0}
-      @port_json["api_data"]["api_ship"].each do |kanmusu|
-        ids.each_with_index do |id, i|
-          if kanmusu["api_id"] == id
-            lv[i] = kanmusu["api_lv"]
-          end
-        end
+      lvs = Array.new(6).map{nil}
+      ids.each_with_index do |id, i|
+        lvs[i] = port_ship(id, "api_lv", @port_json)
       end
-      lv
+      lvs
     end
     # ボーキサイト
     def lost_bauxites
@@ -121,9 +114,6 @@ module Kancolle
             if sortno == kanmusu["api_sortno"]
               names[i] = kanmusu["api_name"]
               Kanmusu::kanmusu_names_push(id,kanmusu["api_name"])
-              if kanmusu["api_name"] =~ /伊/
-                p id,kanmusu["api_name"]
-              end
               break
             end
           end
@@ -149,7 +139,7 @@ module Kancolle
     def slots
       slot_ids = Array.new(6).map{nil}
       ids.each_with_index do |id, i|
-        slot_ids[i] = port_ship(id, "api_slot")
+        slot_ids[i] = port_ship(id, "api_slot", @port_json)
       end
 
       slot_names = Array.new(6).map{Array.new(5)}
@@ -284,6 +274,54 @@ module Kancolle
       end
       seiku
     end
+    # 獲得合計経験値
+    def exps
+      exps = Array.new
+      s_exp = Array.new(6)
+      e_exp = Array.new(6)
+
+      ids.each_with_index do |id, i|
+        s_exp[i] = port_ship(id, "api_exp", @port_json)
+        e_exp[i] = port_ship(id, "api_exp", @end_port_json)
+      end
+      for i in 0..5
+        if s_exp[i].nil? || e_exp[i].nil?
+          exps[i] = nil
+        else
+          exps[i] = e_exp[i][0]-s_exp[i][0]
+        end
+      end
+      exps
+    end
+    # port_fileから現在の経験値を返す
+    def now_exps(key)
+      case key
+      when :start
+        ids.map{|id| port_ship(id, "api_exp", @port_json)}
+      when :end
+        ids.map{|id| port_ship(id, "api_exp", @end_port_json)}
+      end
+    end
+    # 新しい艦は含めない
+    def exps_low
+      exps = Array.new
+      s_exp = Array.new(6)
+      e_exp = Array.new(6)
+
+      ids.each_with_index do |id, i|
+        next if id > 24819
+        s_exp[i] = port_ship(id, "api_exp", @port_json)
+        e_exp[i] = port_ship(id, "api_exp", @end_port_json)
+      end
+      for i in 0..5
+        if s_exp[i].nil? || e_exp[i].nil?
+          exps[i] = nil
+        else
+          exps[i] = e_exp[i][0]-s_exp[i][0]
+        end
+      end
+      exps
+    end
 
     private
     def ids
@@ -330,9 +368,9 @@ module Kancolle
       kanmusu_json = port_json["api_data"]["api_ship"]
       ids.each_with_index do |id, i|
         next if lvs[i] < 10
-        if id > @port_kanmusu_iti_last_id
+        if id > Kanmusu::port_kanmusu_iti_last_id
           kanmusu_json.reverse_each do |kanmusu|
-            break if kanmusu["api_id"] <= @port_kanmusu_iti_last_id
+            break if kanmusu["api_id"] <= Kanmusu::port_kanmusu_iti_last_id
             if kanmusu["api_id"] == id
               if kanmusu[key].is_a?(Array)
                 data[i] = kanmusu[key].inject(:+)
@@ -342,27 +380,39 @@ module Kancolle
             end
           end
         else
-          if kanmusu_json[@port_kanmusu_iti[id]][key].is_a?(Array)
-            data[i] = kanmusu_json[@port_kanmusu_iti[id]][key].inject(:+)
+          if kanmusu_json[Kanmusu::port_kanmusu_iti(id)][key].is_a?(Array)
+            data[i] = kanmusu_json[Kanmusu::port_kanmusu_iti(id)][key].inject(:+)
           else
-            data[i] = kanmusu_json[@port_kanmusu_iti[id]][key]
+            data[i] = kanmusu_json[Kanmusu::port_kanmusu_iti(id)][key]
           end
         end
       end
     end
     # portファイルのspi_shipからデータを取得
-    def port_ship(id, key)
-      if id > @port_kanmusu_iti_last_id
-        @port_json["api_data"]["api_ship"].reverse_each do |kanmusu|
+    def port_ship(id, key, port_json)
+      if id == -1
+        return nil
+      elsif !(Kanmusu::port_kanmusu_iti(id).nil?)
+        # 念のため一致してるかチェック
+        if id == port_json["api_data"]["api_ship"][Kanmusu::port_kanmusu_iti(id)]["api_id"]
+          return port_json["api_data"]["api_ship"][Kanmusu::port_kanmusu_iti(id)][key]
+        else
+          port_json["api_data"]["api_ship"].reverse_each.with_index do |kanmusu,i|
+            if kanmusu["api_id"] == id
+              Kanmusu::port_kanmusu_iti_push(id, port_json["api_data"]["api_ship"].length-i-1)
+              return kanmusu[key]
+            end
+          end
+        end
+      else
+        port_json["api_data"]["api_ship"].each_with_index do |kanmusu, i|
           if kanmusu["api_id"] == id
+            Kanmusu::port_kanmusu_iti_push(id, i)
             return kanmusu[key]
           end
         end
-      elsif id == -1
-        return nil
-      else
-        @port_json["api_data"]["api_ship"][@port_kanmusu_iti[id]][key]
       end
+      return nil
     end
     # 現在は 名前だけ
     def start2_slotitem(id)
@@ -385,7 +435,6 @@ module Kancolle
         return nil
       end
     end
-
     ##################################################################
     # end インスタンスメソッド                                       #
     ##################################################################
