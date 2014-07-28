@@ -297,9 +297,9 @@ module Kancolle
     def now_exps(key)
       case key
       when :start
-        ids.map{|id| port_ship(id, "api_exp", @port_json)}
+        ids.map{|id| if (a = port_ship(id, "api_exp", @port_json)).nil? then nil else a[0] end}
       when :end
-        ids.map{|id| port_ship(id, "api_exp", @end_port_json)}
+        ids.map{|id| if (a = port_ship(id, "api_exp", @end_port_json)).nil? then nil else a[0] end}
       end
     end
     # 新しい艦は含めない
