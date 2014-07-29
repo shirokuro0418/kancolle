@@ -16,86 +16,222 @@ module Kancolle
     def initialize(datas = {})
       super(datas)
 
-      # それぞれ使うときに一度だけ読み込む
-      @json_data                = Hash.new
-      @start_json               = lambda {|x=nil| return return_json(:start, x) }
-      @start2_json              = lambda {|x=nil| return return_json(:start2, x) }
-      @port_json                = lambda {|x=nil| return return_json(:port, x) }
-      @slotitem_member_json     = lambda {|x=nil| return return_json(:slotitem_member, x) }
-      @file_json                = lambda {|x=nil| return return_json(:file, x) }
-      @end_port_json            = lambda {|x=nil| return return_json(:end_port, x) }
-      @end_slotitem_member_json = lambda {|x=nil| return return_json(:end_slotitem_member, x) }
+      @ids           = Array.new
+      @map           = Array.new # マップ情報 return [マップ番号、ステージ番号]
+      @lvs           = Array.new
+      # 失った資源
+      @lost_fuels    = Array.new
+      @lost_bulls    = Array.new
+      @lost_bauxites = Array.new
+
+      @route         = Array.new
+      @names         = Array.new
+      # @names_low     = Array.new
+      @slots         = Array.new
+      @hantei        = Array.new # 勝利判定
+      @rengeki       = Array.new
+      @battle_forms  = Array.new # 交戦形態(同行戦、反航戦、etc)
+      @seiku         = Array.new
+      @exps          = Array.new
+      @now_exps      = Array.new
+      @now_exps_end  = Array.new
     end
 
     ##################################################################
     # インスタンスメソッド                                           #
     ##################################################################
     public
-    # マップ情報 return [マップ番号、ステージ番号]
+    def ids
+      read_all
+      @ids
+    end
     def map
-      return [@start_json["api_data"]["api_maparea_id"], @start_json["api_data"]["api_mapinfo_no"]]
+      read_all
+      @map
     end
-    # レベル
     def lvs
-      lvs = Array.new(6).map{nil}
-      ids.each_with_index do |id, i|
-        lvs[i] = port_ship(id, "api_lv", @port_json)
-      end
-      lvs
+      read_all
+      @lvs
     end
-    # ボーキサイト
+    def lost_fuels
+      read_all
+      @lost_fuels
+    end
+    def lost_bulls
+      read_all
+      @lost_bulls
+    end
     def lost_bauxites
-      max_onslot = Array.new(6).map{0}
-      now_onslot = Array.new(6).map{0}
-      # MAXのスロット数合計 lv 10未満は飛ばす
-      lost_resources!(max_onslot, @port_json, "api_onslot")
-      # 現在のスロット数合計 lv 10未満は飛ばす
-      lost_resources!(now_onslot, @end_port_json, "api_onslot")
+      read_all
+      @lost_bauxites
+    end
+    def route
+      read_all
+      @route
+    end
+    def names
+      read_all
+      @names
+    end
+    def slots
+      read_all
+      @slots
+    end
+    def hantei
+      read_all
+      @hantei
+    end
+    def rengeki
+      read_all
+      @rengeki
+    end
+    def battle_forms
+      read_all
+      @battle_forms
+    end
+    def seiku
+      read_all
+      @seiku
+    end
+    def exps
+      read_all
+      @exps
+    end
+    def now_exps
+      read_all
+      @now_exps
+    end
+    def now_exps_end
+      read_all
+      @now_exps_end
+    end
+
+    def to_db
+      dont_need_var = [ :@file, :@start, :@start2, :@slotitem_member,
+                        :@port, :@end_port, :@end_slotitem_member,
+                      ]
+      h = Hash.new
+      year, man, day, other = @start2.sub(/^.*\//, '').sub(/\..*$/, '').sub!(/_/, '-').split('-')
+      day = Time.local(year, man, day, other[0..1], other[2..3], other[4..5])
+      h[:date] = day
+      self.instance_variables.each do |var|
+        unless dont_need_var.include? var
+          h[var.to_s.sub(/@/, '')] = (eval var.to_s.sub(/@/, '').to_s).to_s
+        end
+      end
+      h
+    end
+
+    ##################################################################
+    # private                                                        #
+    ##################################################################
+    private
+    # 初期化
+    def read_all
+      if @ids.empty?
+        start2_json               = read_json(@start2)
+        port_json                 = read_json(@port)
+        end_port_json             = read_json(@end_port)
+        start_json                = read_json(@start)
+        slotitem_member_json      = read_json(@slotitem_member)
+        end_slotitem_member_json  = read_json(@end_slotitem_member)
+        file_json                 = Array.new(@file.length)
+        # file_jsonの読み込み
+        @file.each_with_index do |map_info, i|
+          map_info_json = Hash.new
+          map_info.each do |map_info_key, map_info_value|
+            if map_info_value.nil?
+              map_info_json[map_info_key] = nil
+            else
+              open(map_info_value){|j| map_info_json[map_info_key] = JSON::parse(j.read)}
+            end
+          end
+          file_json[i] = map_info_json
+        end
+
+        @ids = port_json["api_data"]["api_deck_port"][0]["api_ship"]
+        @map = [start_json["api_data"]["api_maparea_id"], start_json["api_data"]["api_mapinfo_no"]]
+        @lvs = read_lvs(port_json)
+        @lost_fuels    = read_lost_resources(port_json, end_port_json, "api_fuel")
+        @lost_bulls    = read_lost_resources(port_json, end_port_json, "api_bull")
+        @lost_bauxites = read_lost_bauxites(port_json, end_port_json)
+
+        @route         = read_route(start_json, file_json)
+        @names         = read_names(port_json, start2_json)
+        # @names_low     = read_names_low
+        @slots         = Array.new(6).map{Array.new(5)}
+        # slotsの読み込み
+        ids.map{|id| port_ship(id, "api_slot", port_json)}.each_with_index do |kanmusu_slot, i|
+          if kanmusu_slot.nil?
+            @slots[i] = nil
+          else
+            kanmusu_slot.each_with_index do |slot_id, j|
+              @slots[i][j] = start2_slotitem(slot_id, slotitem_member_json, start2_json, end_slotitem_member_json)
+            end
+          end
+        end
+        @hantei = file_json.map do |jsons|
+          if jsons[:battle_result].nil?
+            nil
+          else
+            jsons[:battle_result]["api_data"]["api_win_rank"]
+          end
+        end
+
+        hougeki1          = read_hougeki1(file_json)
+        hougeki2          = read_hougeki2(file_json)
+        @rengeki          = read_rengeki(hougeki1, hougeki2)
+        @battle_forms     = read_battle_forms(file_json)
+        @seiku            = read_seiku(file_json)
+        @exps             = read_exps(port_json, end_port_json)
+        @now_exps         = read_now_exps(:start, port_json, end_port_json)
+        @now_exps_end     = read_now_exps(:end, port_json, end_port_json)
+      end
+    end
+
+    def read_json(file)
+      open(file) do |f|
+        return JSON::parse(f.read)
+      end
+    end
+    def read_lvs(port_json)
+      @ids.map do |id|
+        if id.nil?
+          nil
+        else
+          port_ship(id, "api_lv", port_json)
+        end
+      end
+    end
+    def read_lost_resources(port_json, end_port_json, key_name)
+      # lv10未満は飛ばす
+      now_resources = lost_resources(port_json, key_name)
+      max_resources = lost_resources(end_port_json, key_name)
+      # ケッコン艦は15%off
+      @lvs.each_with_index do |lv, i|
+        next if lv.nil?
+        now_resources[i] = (max_resources[i] - ((max_resources[i] - now_resources[i]) * 0.85).to_i) if lv > 99
+      end
+      max_resources.map.with_index{|m_fuel, i| m_fuel - now_resources[i]}
+    end
+    def read_lost_bauxites(port_json, end_port_json)
+      # lv10未満は飛ばす
+      max_onslot = lost_resources(port_json, "api_onslot")
+      now_onslot = lost_resources(end_port_json,"api_onslot")
 
       max_onslot.map.with_index{|slot, i| (slot - now_onslot[i]) * 5 unless slot.nil?}
     end
-    # 燃料
-    def lost_fuels
-      now_fuels = Array.new(6).map{0}
-      max_fuels = Array.new(6).map{0}
-      # 出撃時の燃料 lv 10未満は飛ばす
-      lost_resources!(max_fuels, @port_json, "api_fuel")
-      # 現在燃料 lv 10未満は飛ばす
-      lost_resources!(now_fuels, @end_port_json, "api_fuel")
-      # ケッコン艦は15%off
-      lvs.each_with_index do |lv, i|
-        now_fuels[i] = (max_fuels[i] - ((max_fuels[i] - now_fuels[i]) * 0.85).to_i) if lv > 99
-      end
-      max_fuels.map.with_index{|m_fuel, i| m_fuel - now_fuels[i]}
-    end
-    # 弾薬
-    def lost_bulls
-      max_bull = Array.new(6).map{0}
-      now_bull = Array.new(6).map{0}
-      # 出撃時の弾薬 lv 10未満は飛ばす
-      lost_resources!(max_bull, @port_json, "api_bull")
-      # 現在の弾薬 lv 10未満は飛ばす
-      lost_resources!(now_bull, @end_port_json, "api_bull")
-      # ケッコン艦は15%off
-      lvs.each_with_index do |lv, i|
-        now_bull[i] = (max_bull[i] - ((max_bull[i] - now_bull[i]) * 0.85).to_i) if lv > 99
-      end
-
-      max_bull.map.with_index{|slot, i| slot - now_bull[i]}
-    end
-    # ルート
-    def route
+    def read_route(start_json, file_json)
       route = Array.new
-      route.push(@start_json["api_data"]["api_no"])
-      tmp_file = @file_json.call.clone
+      route.push(start_json["api_data"]["api_no"])
+      tmp_file = file_json.clone
       tmp_file.shift
       tmp_file.each do |file_json|
         route.push(file_json[:next]["api_data"]["api_no"])
       end
       route
     end
-    # 名前
-    def names
+    def read_names(port_json, start2_json)
       names = Array.new(6).map{nil}
 
       ids.each_with_index do |id, i|
@@ -104,13 +240,13 @@ module Kancolle
         elsif !(names[i] = Kanmusu::kanmusu_names[id]).nil?
         else
           sortno = nil
-          @port_json["api_data"]["api_ship"].reverse_each do |kanmusu|
+          port_json["api_data"]["api_ship"].reverse_each do |kanmusu|
              if id == kanmusu["api_id"]
                sortno = kanmusu["api_sortno"]
                break
              end
           end
-          @start2_json["api_data"]["api_mst_ship"].reverse_each do |kanmusu|
+          start2_json["api_data"]["api_mst_ship"].reverse_each do |kanmusu|
             if sortno == kanmusu["api_sortno"]
               names[i] = kanmusu["api_name"]
               Kanmusu::kanmusu_names_push(id,kanmusu["api_name"])
@@ -121,109 +257,40 @@ module Kancolle
       end
       names
     end
-    # 改、改二のみ 阿武隈は例外
-    def names_low
-      names = Array.new(6).map{nil}
+    # def read_names_low
+    #   names = Array.new(6).map{nil}
 
-      ids.each_with_index do |id, i|
-        if id == -1
-          next
-        elsif (name=Kanmusu::kanmusu_names[id]) =~ /改/ || name =~ /阿武隈/
-          names[i] = name
-        else
-        end
-      end
-      names
-    end
-    # 装備名
-    def slots
-      slot_ids = Array.new(6).map{nil}
-      ids.each_with_index do |id, i|
-        slot_ids[i] = port_ship(id, "api_slot", @port_json)
-      end
-
-      slot_names = Array.new(6).map{Array.new(5)}
-      slot_ids.each_with_index do |kanmusu_slot, i|
-        if kanmusu_slot.nil?
-          slot_names[i] = nil
-        else
-          kanmusu_slot.each_with_index do |slot_id, j|
-            slot_names[i][j] = start2_slotitem(slot_id)
-          end
-        end
-      end
-      return slot_names
-    end
-    # 勝利判定
-    def hantei
-      hantei = Array.new
-      @file_json.call.each_with_index do |file_json, i|
-        if file_json[:battle].nil?
-          hantei[i] = nil
-        else
-          hantei[i] = Hantei::syouri(file_json[:battle], file_json[:battle_midnight])
-        end
-      end
-      return hantei
-    end
-    # 砲撃１
-    def hougeki1
-      hou = Array.new
-      @file_json.call.each_with_index do |file_json, i|
-        battle = Hash.new
-        if file_json[:battle].nil? || file_json[:battle]["api_data"]["api_hourai_flag"][0] != 1
-          battle = nil
-        else
-          file_json[:battle]["api_data"]["api_hougeki1"].each do |key, value|
-            battle[key.slice(4, key.length).to_sym] = value.select{|v| v != -1 }
-          end
-        end
-        hou[i] = battle
-      end
-      hou
-    end
-    # 砲撃2
-    def hougeki2
-      hou = Array.new
-      @file_json.call.each_with_index do |file_json, i|
-        battle = Hash.new
-        if file_json[:battle].nil? || file_json[:battle]["api_data"]["api_hourai_flag"][1] != 1
-          battle = nil
-        else
-          file_json[:battle]["api_data"]["api_hougeki2"].each do |key, value|
-            value.shift
-            battle[key.slice(4, key.length).to_sym] = value.select{|v| v != -1 }
-          end
-        end
-        hou[i] = battle
-      end
-      hou
-    end
-    # 連撃
-    def rengeki
-      kanmusu_rengeki = rengeki_at_stage
-      kanmusu_rengeki.map{|rengeki| rengeki.inject(:+) }
-    end
-    def rengeki_at_stage
+    #   ids.each_with_index do |id, i|
+    #     if id == -1
+    #       next
+    #     elsif (name=Kanmusu::kanmusu_names[id]) =~ /改/ || name =~ /阿武隈/
+    #       names[i] = name
+    #     else
+    #     end
+    #   end
+    #   names
+    # end
+    def read_rengeki(hougeki1, hougeki2)
       kanmusu_rengeki = Array.new(6).map{Array.new(@file.length).map{0}}
 
-      [ hougeki1, hougeki2 ].each do |hou|
-        for i in 0..hou.length-1
-          next if hou[i].nil?
+      [ hougeki1, hougeki2 ].each do |hougeki|
+        for i in 0..hougeki.length-1
+          next if hougeki[i].nil?
           # 連撃をし、攻撃が味方の場合
-          for j in 0..hou[i][:cl_list].length-1
-            if hou[i][:damage][j].length == 2 && (1 <= hou[i][:at_list][j] && hou[i][:at_list][j] <= 6)
-              kanmusu_rengeki[hou[i][:at_list][j]-1][i] += 1
+          for j in 0..hougeki[i][:cl_list].length-1
+            if hougeki[i][:damage][j].length == 2 &&
+                (1 <= hougeki[i][:at_list][j] && hougeki[i][:at_list][j] <= 6)
+              kanmusu_rengeki[hougeki[i][:at_list][j]-1][i] += 1
             end
           end
         end
       end
-      kanmusu_rengeki
+
+      kanmusu_rengeki.map{|rengeki| rengeki.inject(:+) }
     end
-    # 交戦形態
-    def battle_forms
+    def read_battle_forms(file_json)
       forms = Array.new
-      @file_json.call.each do |file_json|
+      file_json.each do |file_json|
         unless file_json[:battle].nil?
           case file_json[:battle]["api_data"]["api_formation"][2]
           when 1
@@ -245,10 +312,9 @@ module Kancolle
       end
       forms
     end
-    # 制空権
-    def seiku
+    def read_seiku(file)
       seiku = Array.new
-      @file_json.call.each do |file_json|
+      file.each do |file_json|
         unless file_json[:battle].nil?
           unless file_json[:battle]["api_data"]["api_stage_flag"][0] == 0
             case file_json[:battle]["api_data"]["api_kouku"]["api_stage1"]["api_disp_seiku"]
@@ -267,6 +333,8 @@ module Kancolle
             end
 
             seiku.push(kousen)
+          else
+            seiku.push("謎の場所")
           end
         else
           seiku.push(nil)
@@ -274,15 +342,14 @@ module Kancolle
       end
       seiku
     end
-    # 獲得合計経験値
-    def exps
-      exps = Array.new
+    def read_exps(port_json, end_port_json)
+      exps = Array.new(6)
       s_exp = Array.new(6)
       e_exp = Array.new(6)
 
       ids.each_with_index do |id, i|
-        s_exp[i] = port_ship(id, "api_exp", @port_json)
-        e_exp[i] = port_ship(id, "api_exp", @end_port_json)
+        s_exp[i] = port_ship(id, "api_exp", port_json)
+        e_exp[i] = port_ship(id, "api_exp", end_port_json)
       end
       for i in 0..5
         if s_exp[i].nil? || e_exp[i].nil?
@@ -294,80 +361,52 @@ module Kancolle
       exps
     end
     # port_fileから現在の経験値を返す
-    def now_exps(key)
+    def read_now_exps(key, port_json, end_port_json)
       case key
       when :start
-        ids.map{|id| if (a = port_ship(id, "api_exp", @port_json)).nil? then nil else a[0] end}
+        @ids.map{|id| if (a = port_ship(id, "api_exp", port_json)).nil? then nil else a[0] end}
       when :end
-        ids.map{|id| if (a = port_ship(id, "api_exp", @end_port_json)).nil? then nil else a[0] end}
+        @ids.map{|id| if (a = port_ship(id, "api_exp", end_port_json)).nil? then nil else a[0] end}
       end
     end
-    # 新しい艦は含めない
-    def exps_low
-      exps = Array.new
-      s_exp = Array.new(6)
-      e_exp = Array.new(6)
 
-      ids.each_with_index do |id, i|
-        next if id > 24819
-        s_exp[i] = port_ship(id, "api_exp", @port_json)
-        e_exp[i] = port_ship(id, "api_exp", @end_port_json)
-      end
-      for i in 0..5
-        if s_exp[i].nil? || e_exp[i].nil?
-          exps[i] = nil
+    def read_hougeki1(file)
+      hou = Array.new
+      file.each_with_index do |file_json, i|
+        battle = Hash.new
+        if file_json[:battle].nil? || file_json[:battle]["api_data"]["api_hourai_flag"][0] != 1
+          battle = nil
         else
-          exps[i] = e_exp[i][0]-s_exp[i][0]
-        end
-      end
-      exps
-    end
-
-    private
-    def ids
-      @port_json["api_data"]["api_deck_port"][0]["api_ship"]
-    end
-    def return_json(key, x)
-      if @json_data[key].nil? then json_read(key) end
-      if x.nil?
-        @json_data[key]
-      else
-        @json_data[key][x]
-      end
-    end
-    def json_read(key)
-      case key
-      when :start
-        open(@start) {|j| @json_data[key] = JSON::parse(j.read)}
-      when :start2
-        open(@start2) {|j| @json_data[key] = JSON::parse(j.read)}
-      when :port
-        open(@port) {|j| @json_data[key] = JSON::parse(j.read)}
-      when :slotitem_member
-        open(@slotitem_member) {|j| @json_data[key] = JSON::parse(j.read)}
-      when :file
-        @json_data[key] = Array.new
-        @file.each_with_index do |mass, i|
-          mass_json = Hash.new
-          mass.each do |mass_key, mass_value|
-            if mass_value.nil?
-              mass_json[mass_key] = nil
-            else
-              open(mass_value){|j| mass_json[mass_key] = JSON::parse(j.read)}
-            end
+          file_json[:battle]["api_data"]["api_hougeki1"].each do |key, value|
+            battle[key.slice(4, key.length).to_sym] = value.select{|v| v != -1 }
           end
-          @json_data[key][i] = mass_json
         end
-      when :end_port
-        open(@end_port) {|j| @json_data[key] = JSON::parse(j.read)}
-      when :end_slotitem_member
-        open(@end_slotitem_member) {|j| @json_data[key] = JSON::parse(j.read)}
+        hou[i] = battle
       end
+      hou
     end
-    def lost_resources!(data, port_json, key)
+    def read_hougeki2(file)
+      hou = Array.new
+      file.each_with_index do |file_json, i|
+        battle = Hash.new
+        if file_json[:battle].nil? || file_json[:battle]["api_data"]["api_hourai_flag"][1] != 1
+          battle = nil
+        else
+          file_json[:battle]["api_data"]["api_hougeki2"].each do |key, value|
+            value.shift
+            battle[key.slice(4, key.length).to_sym] = value.select{|v| v != -1 }
+          end
+        end
+        hou[i] = battle
+      end
+      hou
+    end
+    def lost_resources(port_json, key)
+      # lv10未満は飛ばす
+      data = Array.new(6).map{0}
       kanmusu_json = port_json["api_data"]["api_ship"]
-      ids.each_with_index do |id, i|
-        next if lvs[i] < 10
+      @ids.each_with_index do |id, i|
+        next if id == -1 || @lvs[i] < 10
         if id > Kanmusu::port_kanmusu_iti_last_id
           kanmusu_json.reverse_each do |kanmusu|
             break if kanmusu["api_id"] <= Kanmusu::port_kanmusu_iti_last_id
@@ -390,22 +429,26 @@ module Kancolle
     end
     # portファイルのspi_shipからデータを取得
     def port_ship(id, key, port_json)
+      port_ship = port_json["api_data"]["api_ship"]
       if id == -1
         return nil
-      elsif !(Kanmusu::port_kanmusu_iti(id).nil?)
+      elsif !Kanmusu::port_kanmusu_iti(id).nil?
         # 念のため一致してるかチェック
-        if id == port_json["api_data"]["api_ship"][Kanmusu::port_kanmusu_iti(id)]["api_id"]
-          return port_json["api_data"]["api_ship"][Kanmusu::port_kanmusu_iti(id)][key]
-        else
-          port_json["api_data"]["api_ship"].reverse_each.with_index do |kanmusu,i|
+        if port_ship[Kanmusu::port_kanmusu_iti(id)].nil? ||
+            id != port_ship[Kanmusu::port_kanmusu_iti(id)]["api_id"]
+          # １つずつ調べる
+          port_ship.reverse_each.with_index do |kanmusu,i|
             if kanmusu["api_id"] == id
-              Kanmusu::port_kanmusu_iti_push(id, port_json["api_data"]["api_ship"].length-i-1)
+              Kanmusu::port_kanmusu_iti_push(id, port_ship.length-i-1)
               return kanmusu[key]
             end
           end
+        else
+          return port_ship[Kanmusu::port_kanmusu_iti(id)][key]
         end
       else
-        port_json["api_data"]["api_ship"].each_with_index do |kanmusu, i|
+        # １つずつ調べる
+        port_ship.each_with_index do |kanmusu, i|
           if kanmusu["api_id"] == id
             Kanmusu::port_kanmusu_iti_push(id, i)
             return kanmusu[key]
@@ -415,22 +458,51 @@ module Kancolle
       return nil
     end
     # 現在は 名前だけ
-    def start2_slotitem(id)
+    def start2_slotitem(id, slotitem_member_json, start2_json, end_slotitem_member_json)
       if id > Kanmusu::start2_slot_iti_last_id
         sortno = nil
-        @slotitem_member_json["api_data"].reverse_each do |slot|
-           if slot["api_id"] == id
-             sortno = slot["api_slotitem_id"]
-             break
-           end
+        slotitem_member_json["api_data"].reverse_each do |slot|
+          if slot["api_id"] == id
+            sortno = slot["api_slotitem_id"]
+            break
+          end
         end
-        @start2_json["api_data"]["api_mst_slotitem"].reverse_each do |slot|
+        start2_json["api_data"]["api_mst_slotitem"].reverse_each do |slot|
           if slot["api_sortno"] == sortno
             return slot["api_name"]
           end
         end
+        return "不明。見つからず"
       elsif id != -1
-        return Kanmusu::start2_slot_iti[id]
+        if Kanmusu::start2_slot_iti[id].nil?
+          sortno = nil
+          slotitem_member_json["api_data"].reverse_each do |slot|
+            if slot["api_id"] == id
+              sortno = slot["api_slotitem_id"]
+              break
+            end
+          end
+          start2_json["api_data"]["api_mst_slotitem"].reverse_each do |slot|
+            if slot["api_sortno"] == sortno
+              return slot["api_name"]
+            end
+          end
+          sortno = nil
+          end_slotitem_member_json["api_data"].reverse_each do |slot|
+            if slot["api_id"] == id
+              sortno = slot["api_slotitem_id"]
+              break
+            end
+          end
+          start2_json["api_data"]["api_mst_slotitem"].reverse_each do |slot|
+            if slot["api_sortno"] == sortno
+              return slot["api_name"]
+            end
+          end
+          return "不明。見つからず"
+        else
+          return Kanmusu::start2_slot_iti[id]
+        end
       else
         return nil
       end

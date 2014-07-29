@@ -16,6 +16,14 @@ module Kancolle
     ##################################################################
     # インスタンスメソッド                                           #
     ##################################################################
+    # id
+    def ids
+      @entry_files.map{|entry_file| entry_file.ids}
+    end
+    # lvs
+    def lvs
+      @entry_files.map{|entry_file| entry_file.lvs}
+    end
     # ステージで検出
     def extract_stage(maparea, mapinfo = nil)
       entry_files = Array.new
@@ -56,9 +64,6 @@ module Kancolle
     def names
       @entry_files.map{|entry_file| entry_file.names}
     end
-    def names_low
-      @entry_files.map{|entry_file| entry_file.names_low}
-    end
     # 装備
     def slots
       @entry_files.map{|entry_file| entry_file.slots}
@@ -73,7 +78,7 @@ module Kancolle
     end
     # 獲得経験値合計
     def exps
-      @entry_files.map{|entry_file| entry_file.exps_low}
+      @entry_files.map{|entry_file| entry_file.exps}
     end
     # 判定
     def hantei
