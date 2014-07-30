@@ -26,16 +26,16 @@ module Kancolle
     end
     # ステージで検出
     def extract_stage(maparea, mapinfo = nil)
-      entry_files = Array.new
-      @entry_files.each do |entry_file|
-        map = entry_file.map
-        if map[0] == maparea
-          if mapinfo.nil? || map[1] == mapinfo
-            entry_files.push(entry_file)
-          end
-        end
-      end
-      return EntryFiles.new(entry_files)
+      EntryFiles.new(@entry_files.select{|entry_file|
+                       map = entry_file.map
+                       if map[0] == maparea
+                         if mapinfo.nil? || map[1] == mapinfo
+                           true
+                         else
+                           false
+                         end
+                       end
+                     })
     end
     # ルートで検出
     def extract_route(route)

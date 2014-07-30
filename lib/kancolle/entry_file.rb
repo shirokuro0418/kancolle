@@ -35,6 +35,11 @@ module Kancolle
       @exps          = Array.new
       @now_exps      = Array.new
       @now_exps_end  = Array.new
+      # 今はバシー、オリョクル、キスのみ。
+      @got_fuel      = 0
+      @got_bull      = 0
+      @got_steel     = 0
+      @got_bauxisite = 0
     end
 
     ##################################################################
@@ -105,18 +110,34 @@ module Kancolle
       read_all
       @now_exps_end
     end
+    def got_fuel
+      read_all
+      @got_fuel
+    end
+    def got_bull
+      read_all
+      @got_bull
+    end
+    def got_steel
+      read_all
+      @got_steel
+    end
+    def got_bauxisite
+      read_all
+      @got_bauxisite
+    end
 
     def to_db
       dont_need_var = [ :@file, :@start, :@start2, :@slotitem_member,
-                        :@port, :@end_port, :@end_slotitem_member,
+                        :@port, :@end_port, :@end_slotitem_member
                       ]
       h = Hash.new
-      year, man, day, other = @start2.sub(/^.*\//, '').sub(/\..*$/, '').sub!(/_/, '-').split('-')
+      year, man, day, other = @start.sub(/^.*\//, '').sub(/\..*$/, '').sub!(/_/, '-').split('-')
       day = Time.local(year, man, day, other[0..1], other[2..3], other[4..5])
       h[:date] = day
       self.instance_variables.each do |var|
         unless dont_need_var.include? var
-          h[var.to_s.sub(/@/, '')] = (eval var.to_s.sub(/@/, '').to_s).to_s
+          h[var.to_s.sub(/@/, '')] = (eval var.to_s.sub(/@/, '').to_s)
         end
       end
       h
@@ -156,6 +177,7 @@ module Kancolle
         @lost_bulls    = read_lost_resources(port_json, end_port_json, "api_bull")
         @lost_bauxites = read_lost_bauxites(port_json, end_port_json)
 
+        tmp = file_json.clone
         @route         = read_route(start_json, file_json)
         @names         = read_names(port_json, start2_json)
         # @names_low     = read_names_low
@@ -186,6 +208,50 @@ module Kancolle
         @exps             = read_exps(port_json, end_port_json)
         @now_exps         = read_now_exps(:start, port_json, end_port_json)
         @now_exps_end     = read_now_exps(:end, port_json, end_port_json)
+
+        # バシー、オリョクル、キスの獲得資源　他のステージは全部0になる
+        case @map
+        when [2,2]
+          @route.each_with_index do |route, i|
+            if [2,3,8].include?(route)
+              if i == 0
+                @got_bauxisite += start_json["api_data"]["api_itemget"]["api_getcount"]
+              else
+                @got_bauxisite += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"]
+              end
+            end
+          end
+        when [2,3]
+          @route.each_with_index do |route, i|
+            if [2,6,7].include?(route)
+              if i == 0
+                @got_fuel += start_json["api_data"]["api_itemget"]["api_getcount"]
+              else
+                @got_fuel += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"]
+              end
+            end
+          end
+          @route.each_with_index do |route, i|
+            if [4,8].include?(route)
+              if i == 0
+                @got_bull += start_json["api_data"]["api_itemget"]["api_getcount"]
+              else
+                @got_bull += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"]
+              end
+            end
+          end
+        when [3,2]
+          @route.each_with_index do |route, i|
+            if [5].include?(route)
+              if i == 0
+                @got_steel += start_json["api_data"]["api_itemget"]["api_getcount"]
+              else
+                @got_steel += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"]
+              end
+            end
+          end
+        else
+        end
       end
     end
 
@@ -257,19 +323,6 @@ module Kancolle
       end
       names
     end
-    # def read_names_low
-    #   names = Array.new(6).map{nil}
-
-    #   ids.each_with_index do |id, i|
-    #     if id == -1
-    #       next
-    #     elsif (name=Kanmusu::kanmusu_names[id]) =~ /改/ || name =~ /阿武隈/
-    #       names[i] = name
-    #     else
-    #     end
-    #   end
-    #   names
-    # end
     def read_rengeki(hougeki1, hougeki2)
       kanmusu_rengeki = Array.new(6).map{Array.new(@file.length).map{0}}
 

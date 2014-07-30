@@ -54,12 +54,12 @@ MARRIAGES = {
   905   => false         # 夕張改
 }
 MANTH = 7
-RANKING = 5
+RANKING = 10
 
 str_arr = Array.new
 
-stage = DbEntryFiles.new
-stage = stage.between_days(man=Date.new(2014,MANTH), Date.new(2014,MANTH+1)-1)
+stage = DbConection::sql "select * from entry_files where date between '2014-#{MANTH}-01' AND '2014-#{MANTH+1}-01';"
+# stage = stage.between_days(man=Date.new(2014,MANTH), Date.new(2014,MANTH+1)-1)
 
 # 使った艦娘ワースト10
 # count_kanmusu key   : id
@@ -71,8 +71,8 @@ names = stage.names
 lvs   = stage.lvs
 ids.each_with_index do |kantai_ids, i|
   kantai_ids.each_with_index do |id, j|
-    # lv10未満は含まない
-    next if id == -1 || lvs[i][j] < 10
+    # lv10未満は含まない、未改造も含めない
+    next if id == -1 || lvs[i][j] < 10 || !(names[i][j] =~ /改/)
     if count_kanmusus[id].nil?
       count_kanmusus[id] = [names[i][j], 1]
     else
@@ -89,7 +89,7 @@ count_kanmusus.each do |id, value|
   end
 end
 
-str_arr.push "#{man.month}月の集計"
+str_arr.push "#{MANTH}月の集計"
 ##################################################################
 # レベルでソート
 ##################################################################
@@ -124,7 +124,7 @@ str_arr.push "-----------------------------------------------------------------"
 # 経験値でソート
 ##################################################################
 str_arr.push "\n"
-str_arr.push "合計経験値ランク"
+str_arr.push "獲得経験値ランク"
 str_arr.push "-----------------------------------------------------------------"
 str_arr.push "|順位\t|名前\t\t|出撃\t|レベル\t\t|合計獲得経験値\t|"
 str_arr.push "-----------------------------------------------------------------"

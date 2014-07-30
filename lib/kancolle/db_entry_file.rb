@@ -5,7 +5,8 @@ module Kancolle
   class DbEntryFile
     attr_reader :date, :ids, :map, :lvs, :lost_fuels, :lost_bulls, :lost_bauxites,
                 :route, :names, :slots, :hantei, :rengeki, :battle_forms,
-                :seiku, :exps, :now_exps, :now_exps_end
+                :seiku, :exps, :now_exps, :now_exps_end, :got_fuel, :got_bull,
+                :got_steel, :got_bauxisite
 
     def initialize(datas = {})
       datas.each do |attribute_name, value|
@@ -14,7 +15,11 @@ module Kancolle
         else
           next if attribute_name == "id"
 
-          eval("@#{attribute_name} = #{JSON::parse value.gsub(/nil/, "null")}")
+          if ["got_fuel","got_bull","got_steel","got_bauxisite"].include?(attribute_name)
+            eval("@#{attribute_name} = #{value}")
+          else
+            eval("@#{attribute_name} = #{JSON::parse value.gsub(/nil/, "null")}")
+          end
         end
       end
     end
