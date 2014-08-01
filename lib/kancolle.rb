@@ -1,5 +1,6 @@
 require 'json'
 require 'date'
+require 'time'
 
 require 'active_support/core_ext/string/inflections'
 

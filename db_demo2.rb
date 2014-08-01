@@ -7,6 +7,6 @@ require "kancolle"
 include Kancolle
 start_time = Time.now
 
-DbConnection::insert
+DbConnection::insert_newrest
 
 puts "処理時間：#{Time.now-start_time}s"

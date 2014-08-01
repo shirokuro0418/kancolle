@@ -6,19 +6,35 @@ module Kancolle
     attr_reader :date, :ids, :map, :lvs, :lost_fuels, :lost_bulls, :lost_bauxites,
                 :route, :names, :slots, :hantei, :rengeki, :battle_forms,
                 :seiku, :exps, :now_exps, :now_exps_end, :got_fuel, :got_bull,
-                :got_steel, :got_bauxisite
+                :got_steel, :got_bauxisite,
+                :start, :file, :start2, :slotitem_member, :end_slotitem_member,
+                :port, :end_port
 
     def initialize(datas = {})
+      integers = [ "got_fuel","got_bull","got_steel","got_bauxisite" ]
+      strings  = [ "start", "start2", "slotitem_member", "end_slotitem_member",
+                   "port", "end_port"
+                 ]
       datas.each do |attribute_name, value|
         if attribute_name == "date"
-          @date = Date::parse(value)
+          @date = Time::parse(value)
         else
           next if attribute_name == "id"
 
-          if ["got_fuel","got_bull","got_steel","got_bauxisite"].include?(attribute_name)
+          if strings.include?(attribute_name)
+            eval("@#{attribute_name} = '#{value}'")
+          elsif integers.include?(attribute_name)
             eval("@#{attribute_name} = #{value}")
+          elsif ["file"].include?(attribute_name)
+            @file = Array.new
+            next if value == "[]"
+            i = 0
+            while data = value.slice!(/{.*?}/)
+              @file[i] = eval data
+              i += 1
+            end
           else
-            eval("@#{attribute_name} = #{JSON::parse value.gsub(/nil/, "null")}")
+            eval("@#{attribute_name} = #{JSON::parse value.gsub(/nil/,'null')}")
           end
         end
       end

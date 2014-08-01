@@ -5,7 +5,9 @@ module Kancolle
     public
 
     ## dirからEntryFile郡を作る
-    def self.parse_for_dir(d = nil)
+    # d は dir
+    # last_dayはDBに登録するときに不必要なデータを弾くため last_day以降のみで作成
+    def self.parse_for_dir(d = nil, last_day = nil)
       if d.nil?
         d = "/Users/shirokuro11/Documents/koukai_nisshi/data/json/json"
       end
@@ -57,15 +59,22 @@ module Kancolle
                                    :ship2           => ship2_file,
                                  })
             end
+
             unless syutugeki_arr.nil?
-              entryfiles.push(EntryFile.new({ "start"               => e_start_file,
-                                              "file"                => syutugeki_arr,
-                                              "start2"              => e_start2_file,
-                                              "slotitem_member"     => e_slotitem_member_file,
-                                              "port"                => e_port_file,
-                                              "end_port"            => e_end_port_file,
-                                              "end_slotitem_member" => e_end_slotitem_member_file
-                                            }))
+              year, man, day, other = e_start_file.sub(/^.*\//, '').sub(/\..*$/, '').sub!(/_/, '-').split('-')
+              day = Time.local(year, man, day, other[0..1], other[2..3], other[4..5])
+
+              # 条件を指定した場合
+              if last_day.nil? || last_day < day
+                entryfiles.push(EntryFile.new({ "start"               => e_start_file,
+                                                "file"                => syutugeki_arr,
+                                                "start2"              => e_start2_file,
+                                                "slotitem_member"     => e_slotitem_member_file,
+                                                "port"                => e_port_file,
+                                                "end_port"            => e_end_port_file,
+                                                "end_slotitem_member" => e_end_slotitem_member_file
+                                              }))
+              end
             end
             e_start_file               = dir.path.sub(/[^\/]$/, '\&/') + file
             end_port_flg               = true
@@ -119,6 +128,12 @@ module Kancolle
             e_end_port_file.nil? ||
             e_end_slotitem_member_file.nil? ||
             syutugeki_arr.nil?
+
+          year, man, day, other = e_start_file.sub(/^.*\//, '').sub(/\..*$/, '').sub!(/_/, '-').split('-')
+          day = Time.local(year, man, day, other[0..1], other[2..3], other[4..5])
+
+          # 条件を指定した場合
+          if last_day.nil? || last_day < day
             entryfiles.push(EntryFile.new({ "start"               => e_start_file,
                                             "file"                => syutugeki_arr,
                                             "start2"              => e_start2_file,
@@ -127,6 +142,7 @@ module Kancolle
                                             "end_port"            => e_end_port_file,
                                             "end_slotitem_member" => e_end_slotitem_member_file
                                           }))
+          end
         end
       end
       return EntryFiles.new(entryfiles)

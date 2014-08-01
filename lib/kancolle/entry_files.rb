@@ -44,10 +44,6 @@ module Kancolle
     def length
       @entry_files.length
     end
-    # ボーキサイト
-    def lost_bauxites
-      @entry_files.map{|entry_file| entry_file.lost_bauxites}
-    end
     # 燃料
     def lost_fuels
       @entry_files.map{|entry_file| entry_file.lost_fuels}
@@ -55,6 +51,10 @@ module Kancolle
     # 弾薬
     def lost_bulls
       @entry_files.map{|entry_file| entry_file.lost_bulls}
+    end
+    # ボーキサイト
+    def lost_bauxites
+      @entry_files.map{|entry_file| entry_file.lost_bauxites}
     end
     # ルート
     def routes
@@ -105,9 +105,11 @@ module Kancolle
       if e_day < s_day
         return EntryFile.new
       else
-        EntryFiles.new(@entry_files.select{|entry_file|
-                         entry_file_day = Date.parse(entry_file.start.sub(/^.*\//, '').sub(/_.*json$/, ''))
-                         s_day <= entry_file_day && entry_file_day <= e_day })
+        new_entry_files = @entry_files.select{|entry_file|
+          entry_file_day = Date.parse(entry_file.start.sub(/^.*\//, '').sub(/_.*json$/, ''))
+          s_day <= entry_file_day && entry_file_day <= e_day}
+        new_entry_files.sort{|a,b| a.start.sub(/^.*\//, '').sub(/_.*json$/, '')<=>b.start.sub(/^.*\//, '').sub(/_.*json$/, '')}
+        EntryFiles.new(new_entry_files)
       end
     end
 

@@ -87,9 +87,9 @@ module Kancolle
     # 今日の出撃
     def today
       DbEntryFiles.new(@entry_files.
-                     select{ |entry_file|
-                       Date.today == Date.parse(entry_file.date.to_s)
-                     })
+                       select{|entry_file|
+                         Date.today == Date.parse(entry_file.date.to_s)
+                       })
     end
     # 日付指定 Dateクラスを引数に
     def day(day)
@@ -104,9 +104,11 @@ module Kancolle
       if e_day < s_day
         return DbEntryFile.new
       else
-        DbEntryFiles.new(@entry_files.select{|entry_file|
-                         entry_file_day = Date.parse(entry_file.date.to_s)
-                         s_day <= entry_file_day && entry_file_day <= e_day })
+        new_entry_files = @entry_files.select{|entry_file|
+          entry_file_day = Date.parse(entry_file.start.sub(/^.*\//, '').sub(/_.*json$/, ''))
+          s_day <= entry_file_day && entry_file_day <= e_day}
+        new_entry_files.sort{|a,b| a.start.sub(/^.*\//, '').sub(/_.*json$/, '')<=>b.start.sub(/^.*\//, '').sub(/_.*json$/, '')}
+        DbEntryFiles.new(new_entry_files)
       end
     end
     # ぷっしゅ

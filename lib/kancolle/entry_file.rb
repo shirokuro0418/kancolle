@@ -128,17 +128,12 @@ module Kancolle
     end
 
     def to_db
-      dont_need_var = [ :@file, :@start, :@start2, :@slotitem_member,
-                        :@port, :@end_port, :@end_slotitem_member
-                      ]
       h = Hash.new
       year, man, day, other = @start.sub(/^.*\//, '').sub(/\..*$/, '').sub!(/_/, '-').split('-')
       day = Time.local(year, man, day, other[0..1], other[2..3], other[4..5])
       h[:date] = day
       self.instance_variables.each do |var|
-        unless dont_need_var.include? var
-          h[var.to_s.sub(/@/, '')] = (eval var.to_s.sub(/@/, '').to_s)
-        end
+        h[var.to_s.sub(/@/, '')] = (eval var.to_s.sub(/@/, '').to_s)
       end
       h
     end
@@ -209,7 +204,7 @@ module Kancolle
         @now_exps         = read_now_exps(:start, port_json, end_port_json)
         @now_exps_end     = read_now_exps(:end, port_json, end_port_json)
 
-        # バシー、オリョクル、キスの獲得資源　他のステージは全部0になる
+        # バシー、オリョクル、キスの獲得、カレー資源　他のステージは全部0になる
         case @map
         when [2,2]
           @route.each_with_index do |route, i|
@@ -250,6 +245,16 @@ module Kancolle
               end
             end
           end
+        when [4,2]
+          @route.each_with_index do |route, i|
+            if [4,5,10].include?(route)
+              if i == 0
+                @got_steel += start_json["api_data"]["api_itemget"]["api_getcount"]
+              else
+                @got_steel += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"]
+              end
+            end
+          end
         else
         end
       end
@@ -272,18 +277,21 @@ module Kancolle
     def read_lost_resources(port_json, end_port_json, key_name)
       # lv10未満は飛ばす
       now_resources = lost_resources(port_json, key_name)
-      max_resources = lost_resources(end_port_json, key_name)
+      end_resources = lost_resources(end_port_json, key_name)
       # ケッコン艦は15%off
       @lvs.each_with_index do |lv, i|
         next if lv.nil?
-        now_resources[i] = (max_resources[i] - ((max_resources[i] - now_resources[i]) * 0.85).to_i) if lv > 99
+        end_resources[i] = (now_resources[i] - ((now_resources[i] - end_resources[i]) * 0.85).to_i) if lv > 99
       end
-      max_resources.map.with_index{|m_fuel, i| m_fuel - now_resources[i]}
+      now_resources.map.with_index{|m_fuel, i| m_fuel - end_resources[i]}
     end
     def read_lost_bauxites(port_json, end_port_json)
       # lv10未満は飛ばす
       max_onslot = lost_resources(port_json, "api_onslot")
       now_onslot = lost_resources(end_port_json,"api_onslot")
+
+      max_onslot.each_with_index{|onslot, i| max_onslot[i] = onslot.inject(:+) if 0 != onslot}
+      now_onslot.each_with_index{|onslot, i| now_onslot[i] = onslot.inject(:+) if 0 != onslot}
 
       max_onslot.map.with_index{|slot, i| (slot - now_onslot[i]) * 5 unless slot.nil?}
     end
@@ -457,28 +465,16 @@ module Kancolle
     def lost_resources(port_json, key)
       # lv10未満は飛ばす
       data = Array.new(6).map{0}
-      kanmusu_json = port_json["api_data"]["api_ship"]
       @ids.each_with_index do |id, i|
         next if id == -1 || @lvs[i] < 10
-        if id > Kanmusu::port_kanmusu_iti_last_id
-          kanmusu_json.reverse_each do |kanmusu|
-            break if kanmusu["api_id"] <= Kanmusu::port_kanmusu_iti_last_id
-            if kanmusu["api_id"] == id
-              if kanmusu[key].is_a?(Array)
-                data[i] = kanmusu[key].inject(:+)
-              else
-                data[i] = kanmusu[key]
-              end
-            end
-          end
-        else
-          if kanmusu_json[Kanmusu::port_kanmusu_iti(id)][key].is_a?(Array)
-            data[i] = kanmusu_json[Kanmusu::port_kanmusu_iti(id)][key].inject(:+)
-          else
-            data[i] = kanmusu_json[Kanmusu::port_kanmusu_iti(id)][key]
+        port_json["api_data"]["api_ship"].each do |kanmusu|
+          if kanmusu["api_id"] == id
+            data[i] = kanmusu[key]
+            break
           end
         end
       end
+      data
     end
     # portファイルのspi_shipからデータを取得
     def port_ship(id, key, port_json)
