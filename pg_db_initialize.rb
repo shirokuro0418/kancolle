@@ -13,9 +13,7 @@ db = PG::connect(:host => "localhost", :user => "shirokuro11", :dbname => "kanco
 
 dirs = Kanmusu::dir
 stage = FindEntryFile::parse_for_dir(dirs.shift)
-dirs.each.with_index(1) do |dir, i|
-  stage.push(FindEntryFile::parse_for_dir(dir))
-end
+dirs.each{|dir|stage.push(FindEntryFile::parse_for_dir(dir))}
 len = stage.length
 
 # CREATE TABLE
@@ -25,7 +23,7 @@ begin
     db.exec "DROP TABLE entry_files;"
   end
 
-  Data_type = "id SERIAL PRIMARY KEY,date TIMESTAMP UNIQUE NOT NULL,ids VARCHAR(100) NOT NULL,map VARCHAR(100) NOT NULL," +
+  Data_type = "id SERIAL PRIMARY KEY,date TIMESTAMP UNIQUE NOT NULL,ids VARCHAR(100) NOT NULL,map INTEGER[] NOT NULL," +
     "lvs VARCHAR(100) NOT NULL,lost_fuels VARCHAR(100) NOT NULL,lost_bulls VARCHAR(100) NOT NULL,lost_bauxites VARCHAR(100) NOT NULL," +
     "route VARCHAR(100) NOT NULL,names VARCHAR(100) NOT NULL,hantei VARCHAR(100) NOT NULL,slots VARCHAR(500) NOT NULL," +
     "rengeki VARCHAR(100) NOT NULL,battle_forms VARCHAR(100) NOT NULL,seiku VARCHAR(100) NOT NULL,exps VARCHAR(100) NOT NULL," +

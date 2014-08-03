@@ -17,8 +17,7 @@ else
   day = Date.today - ARGV[0].to_i
 end
 
-stage = DbConnection::sql "SELECT * FROM entry_files " +
-  "WHERE date BETWEEN '#{day}' AND '#{day+1}'"
+stage = DbConnection::sql "SELECT * FROM entry_files WHERE date BETWEEN '#{day}' AND '#{day+1}'"
 
 puts "#{day}の消費"
 puts "出撃回数：#{stage.length}"

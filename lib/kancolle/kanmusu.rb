@@ -42,13 +42,13 @@ module Kancolle
       22940=>132,22965=>133,23007=>134,23328=>135,23977=>136,23978=>137,24518=>138,24724=>139,
       24819=>140
     }
-    @@dir_names = [ "/Users/shirokuro11/Documents/航海日誌アーカイブ/5-23",
-                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/6-14",
-                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/6-24",
-                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/7-04",
-                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/7-14",
-                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/7-18",
-                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/7-28",
+    @@dir_names = [ "/Users/shirokuro11/Documents/航海日誌アーカイブ/05-23",
+                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/06-14",
+                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/06-24",
+                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/07-04",
+                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/07-14",
+                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/07-18",
+                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/07-28",
                     "/Users/shirokuro11/Documents/koukai_nisshi/data/json/json"
                   ]
 

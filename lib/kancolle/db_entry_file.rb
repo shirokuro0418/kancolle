@@ -34,7 +34,7 @@ module Kancolle
               i += 1
             end
           else
-            eval("@#{attribute_name} = #{JSON::parse value.gsub(/nil/,'null')}")
+            eval("@#{attribute_name} = #{JSON::parse value.gsub(/nil/,'null').gsub(/{/,'[').gsub(/}/,']')}")
           end
         end
       end
@@ -46,8 +46,7 @@ module Kancolle
     public
     def to_db
       h = Hash.new
-      day = Time.local(year, man, day, other[0..1], other[2..3], other[4..5])
-      h[:date] = day
+      h["date"] = @day
       self.instance_variables.each do |var|
         h[var.to_s.sub(/@/, '')] = (eval var.to_s.sub(/@/, '').to_s).to_s
       end

@@ -133,7 +133,8 @@ module Kancolle
       day = Time.local(year, man, day, other[0..1], other[2..3], other[4..5])
       h[:date] = day
       self.instance_variables.each do |var|
-        h[var.to_s.sub(/@/, '')] = (eval var.to_s.sub(/@/, '').to_s)
+        key = var.to_s.sub(/@/, '')
+        h[key] = (eval var.to_s.sub(/@/, '').to_s)
       end
       h
     end
@@ -252,6 +253,16 @@ module Kancolle
                 @got_steel += start_json["api_data"]["api_itemget"]["api_getcount"]
               else
                 @got_steel += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"]
+              end
+            end
+          end
+        when [5,4]
+          @route.each_with_index do |route, i|
+            if [18].include?(route)
+              if i == 0
+                @got_fuel += start_json["api_data"]["api_itemget"]["api_getcount"]
+              else
+                @got_fuel+= file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"]
               end
             end
           end

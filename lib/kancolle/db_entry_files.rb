@@ -56,6 +56,23 @@ module Kancolle
     def lost_bulls
       @entry_files.map{|entry_file| entry_file.lost_bulls}
     end
+    # 回収資源
+    def got_fuels
+      @entry_files.map{|entry_file| entry_file.got_fuel}
+    end
+    def got_bulls
+      @entry_files.map{|entry_file| entry_file.got_bull}
+    end
+    def got_steels
+      @entry_files.map{|entry_file| entry_file.got_steel}
+    end
+    def got_bauxisites
+      @entry_files.map{|entry_file| entry_file.got_bauxisite}
+    end
+    def maps
+      @entry_files.map{|entry_file|entry_file.map}
+    end
+
     # ルート
     def routes
       @entry_files.map{|entry_file| entry_file.route}
