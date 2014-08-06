@@ -2,15 +2,11 @@
 ## EntryFileの集まり
 
 module Kancolle
-  class DbEntryFiles
-    attr_reader :entry_files
+  class DbEntryFiles < Array
+    # attr_reader :entry_files
 
     def initialize(entry_files = nil)
-      if entry_files.nil?
-        @entry_files = DbConnection::all.entry_files
-      else
-        @entry_files = entry_files
-      end
+      super(entry_files)
     end
 
     ##################################################################
@@ -18,102 +14,96 @@ module Kancolle
     ##################################################################
     # id
     def ids
-      @entry_files.map{|entry_file| entry_file.ids}
+      self.map{|entry_file| entry_file.ids}
     end
     # lvs
     def lvs
-      @entry_files.map{|entry_file| entry_file.lvs}
+      self.map{|entry_file| entry_file.lvs}
     end
     # ステージで検出
     def extract_stage(maparea, mapinfo = nil)
-      EntryFiles.new(@entry_files.select{|entry_file|
-                       map = entry_file.map
-                       if map[0] == maparea
-                         if mapinfo.nil? || map[1] == mapinfo
-                           true
-                         else
-                           false
-                         end
-                       end
-                     })
+      self.select do |entry_file|
+        map = entry_file.map
+        if map[0] == maparea
+          if mapinfo.nil? || map[1] == mapinfo
+            true
+          else
+            false
+          end
+        end
+      end
     end
     # ルートで検出
     def extract_route(route)
-      EntryFiles.new(@entry_files.select {|entry_file| entry_file.route == route})
+      self.select {|entry_file| entry_file.route == route}
     end
-    def length
-      @entry_files.length
-    end
+    # def length
+    #   @entry_files.length
+    # end
     # ボーキサイト
     def lost_bauxites
-      @entry_files.map{|entry_file| entry_file.lost_bauxites}
+      self.map{|entry_file| entry_file.lost_bauxites}
     end
     # 燃料
     def lost_fuels
-      @entry_files.map{|entry_file| entry_file.lost_fuels}
+      self.map{|entry_file| entry_file.lost_fuels}
     end
     # 弾薬
     def lost_bulls
-      @entry_files.map{|entry_file| entry_file.lost_bulls}
+      self.map{|entry_file| entry_file.lost_bulls}
     end
     # 回収資源
     def got_fuels
-      @entry_files.map{|entry_file| entry_file.got_fuel}
+      self.map{|entry_file| entry_file.got_fuel}
     end
     def got_bulls
-      @entry_files.map{|entry_file| entry_file.got_bull}
+      self.map{|entry_file| entry_file.got_bull}
     end
     def got_steels
-      @entry_files.map{|entry_file| entry_file.got_steel}
+      self.map{|entry_file| entry_file.got_steel}
     end
     def got_bauxisites
-      @entry_files.map{|entry_file| entry_file.got_bauxisite}
+      self.map{|entry_file| entry_file.got_bauxisite}
     end
     def maps
-      @entry_files.map{|entry_file|entry_file.map}
+      self.map{|entry_file|entry_file.map}
     end
 
     # ルート
     def routes
-      @entry_files.map{|entry_file| entry_file.route}
+      self.map{|entry_file| entry_file.route}
     end
     # 名前
     def names
-      @entry_files.map{|entry_file| entry_file.names}
+      self.map{|entry_file| entry_file.names}
     end
     # 装備
     def slots
-      @entry_files.map{|entry_file| entry_file.slots}
+      self.map{|entry_file| entry_file.slots}
     end
     # 航戦形態
     def battle_forms
-      @entry_files.map{|entry_file| entry_file.battle_forms}
+      self.map{|entry_file| entry_file.battle_forms}
     end
     # 制空権
     def seiku
-      @entry_files.map{|entry_file| entry_file.seiku}
+      self.map{|entry_file| entry_file.seiku}
     end
     # 獲得経験値合計
     def exps
-      @entry_files.map{|entry_file| entry_file.exps}
+      self.map{|entry_file| entry_file.exps}
     end
     # 判定
     def hantei
-      @entry_files.map{|entry_file| entry_file.hantei}
+      self.map{|entry_file| entry_file.hantei}
     end
     # 今日の出撃
     def today
-      DbEntryFiles.new(@entry_files.
-                       select{|entry_file|
-                         Date.today == Date.parse(entry_file.date.to_s)
-                       })
+      self.select{|entry_file| Date.today == Date.parse(entry_file.date.to_s) }
     end
     # 日付指定 Dateクラスを引数に
     def day(day)
-      DbEntryFiles.new(@entry_files.
-                     select{ |entry_file|
-                       day == Date.parse(entry_file.date.to_s)
-                     })
+      self.select{ |entry_file| day == Date.parse(entry_file.date.to_s) }
     end
 
     # 期間指定 Dateクラスを引数に
@@ -121,23 +111,12 @@ module Kancolle
       if e_day < s_day
         return DbEntryFile.new
       else
-        new_entry_files = @entry_files.select{|entry_file|
+        new_entry_files = self.select do |entry_file|
           entry_file_day = Date.parse(entry_file.start.sub(/^.*\//, '').sub(/_.*json$/, ''))
-          s_day <= entry_file_day && entry_file_day <= e_day}
+          s_day <= entry_file_day && entry_file_day <= e_day
+        end
         new_entry_files.sort{|a,b| a.start.sub(/^.*\//, '').sub(/_.*json$/, '')<=>b.start.sub(/^.*\//, '').sub(/_.*json$/, '')}
-        DbEntryFiles.new(new_entry_files)
       end
-    end
-    # ぷっしゅ
-    def push(entry_files)
-      entry_files.entry_files.each do |entry_file|
-        @entry_files.push(entry_file)
-      end
-      @entry_files.sort!{|a, b| a.start.split('/').last <=> b.start.split('/').last}
-    end
-    # nil?
-    def empty?
-      @entry_files.empty?
     end
     ##################################################################
     # end インスタンスメソッド                                       #

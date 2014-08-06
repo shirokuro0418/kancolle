@@ -8,7 +8,8 @@ module Kancolle
       PG::connect(:host => "localhost", :user => "shirokuro11", :dbname => "kancolle", :port => 19190)
     end
 
-    # select
+    ## select
+    # entry_file
     def self.all
       db = self.connect
 
@@ -55,6 +56,31 @@ module Kancolle
         entry_files.push DbEntryFile.new(entry)
       end
       return DbEntryFiles.new(entry_files.sort{|a,b| a.date<=>b.date})
+    end
+    # ensei
+    def self.sql_ensei(sql)
+      db = self.connect
+
+      columns =
+        db.exec "SELECT column_name FROM information_schema.columns WHERE table_name = 'ensei_result' ORDER BY ordinal_position;"
+      fields = Array.new
+      columns.each do |row|
+        fields << row["column_name"]
+      end
+
+      ensei_files = Array.new
+      db.exec("#{sql}").each do |row|
+        ensei = Hash.new
+        fields.each do |column|
+          ensei[column] = row[column] if column != "id"
+        end
+        ensei_files.push DbEnseiFile.new(ensei)
+      end
+      return DbEntryFiles.new(ensei_files.sort{|a,b| a.date<=>b.date})
+    end
+    def self.ensei_today
+      day = Date.today-1
+      DbConnection::sql_ensei "SELECT * FROM ensei_result WHERE to_char(date, 'YYYY-MM-DD') = '#{day.to_s}';"
     end
 
     # insert
