@@ -9,7 +9,7 @@ include Kancolle
 
 start_time = Time.now
 
-db = PG::connect(:host => "localhost", :user => "shirokuro11", :dbname => "kancolle", :port => 8989)
+db = DbConnection::connect
 
 dirs = Kanmusu::dir
 stage = FindEntryFile::parse_for_dir(dirs.shift)

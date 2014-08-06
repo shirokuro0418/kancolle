@@ -8,6 +8,13 @@ include Kancolle
 
 start_time = Time.now
 
+Kanmusu::dir.each do |dir|
+  stage = FindEntryFile::parse_for_dir(dir)
+  stage.extract_stage(1,4)
+end
+exit
+
+
 # データ更新
 DbConnection::insert_newrest
 

@@ -5,12 +5,12 @@ module Kancolle
   class DbConnection
     # conection
     def self.connect
-      PG::connect(:host => "localhost", :user => "shirokuro11", :dbname => "kancolle", :port => 8989)
+      PG::connect(:host => "localhost", :user => "shirokuro11", :dbname => "kancolle", :port => 19190)
     end
 
     # select
     def self.all
-      db = PG::connect(:host => "localhost", :user => "shirokuro11", :dbname => "kancolle", :port => 8989)
+      db = self.connect
 
       columns =
         db.exec "SELECT column_name FROM information_schema.columns WHERE table_name = 'entry_files' ORDER BY ordinal_position;"
@@ -37,7 +37,7 @@ module Kancolle
       DbConnection::sql "SELECT * FROM entry_files WHERE date BETWEEN '#{day}' AND '#{day+1}'"
     end
     def self.sql(sql)
-      db = PG::connect(:host => "localhost", :user => "shirokuro11", :dbname => "kancolle", :port => 8989)
+      db = self.connect
 
       columns =
         db.exec "SELECT column_name FROM information_schema.columns WHERE table_name = 'entry_files' ORDER BY ordinal_position;"

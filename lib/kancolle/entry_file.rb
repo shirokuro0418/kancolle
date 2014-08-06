@@ -179,7 +179,7 @@ module Kancolle
         # @names_low     = read_names_low
         @slots         = Array.new(6).map{Array.new(5)}
         # slotsの読み込み
-        ids.map{|id| port_ship(id, "api_slot", port_json)}.each_with_index do |kanmusu_slot, i|
+        @ids.map{|id| port_ship(id, "api_slot", port_json)}.each_with_index do |kanmusu_slot, i|
           if kanmusu_slot.nil?
             @slots[i] = nil
           else
@@ -205,67 +205,23 @@ module Kancolle
         @now_exps         = read_now_exps(:start, port_json, end_port_json)
         @now_exps_end     = read_now_exps(:end, port_json, end_port_json)
 
-        # バシー、オリョクル、キスの獲得、カレー資源　他のステージは全部0になる
+        # ステージで拾った資源
         case @map
+        when [1,4]
+          got_resource!(:bull,  [3], start_json, file_json)
+          got_resource!(:steel, [4,11], start_json, file_json)
+          got_resource!(:bauxisite, [6], start_json, file_json)
         when [2,2]
-          @route.each_with_index do |route, i|
-            if [2,3,8].include?(route)
-              if i == 0
-                @got_bauxisite += start_json["api_data"]["api_itemget"]["api_getcount"]
-              else
-                @got_bauxisite += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"]
-              end
-            end
-          end
+          got_resource!(:bauxisite, [2,3,8], start_json, file_json)
         when [2,3]
-          @route.each_with_index do |route, i|
-            if [2,6,7].include?(route)
-              if i == 0
-                @got_fuel += start_json["api_data"]["api_itemget"]["api_getcount"]
-              else
-                @got_fuel += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"]
-              end
-            end
-          end
-          @route.each_with_index do |route, i|
-            if [4,8].include?(route)
-              if i == 0
-                @got_bull += start_json["api_data"]["api_itemget"]["api_getcount"]
-              else
-                @got_bull += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"]
-              end
-            end
-          end
+          got_resource!(:fuel, [2,6,7], start_json, file_json)
+          got_resource!(:bull, [4,8], start_json, file_json)
         when [3,2]
-          @route.each_with_index do |route, i|
-            if [5].include?(route)
-              if i == 0
-                @got_steel += start_json["api_data"]["api_itemget"]["api_getcount"]
-              else
-                @got_steel += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"]
-              end
-            end
-          end
+          got_resource!(:steel, [5], start_json, file_json)
         when [4,2]
-          @route.each_with_index do |route, i|
-            if [4,5,10].include?(route)
-              if i == 0
-                @got_steel += start_json["api_data"]["api_itemget"]["api_getcount"]
-              else
-                @got_steel += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"]
-              end
-            end
-          end
+          got_resource!(:steel, [4,5,10], start_json, file_json)
         when [5,4]
-          @route.each_with_index do |route, i|
-            if [18].include?(route)
-              if i == 0
-                @got_fuel += start_json["api_data"]["api_itemget"]["api_getcount"]
-              else
-                @got_fuel+= file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"]
-              end
-            end
-          end
+          got_resource!(:fuel, [18], start_json, file_json)
         else
         end
       end
@@ -319,7 +275,7 @@ module Kancolle
     def read_names(port_json, start2_json)
       names = Array.new(6).map{nil}
 
-      ids.each_with_index do |id, i|
+      @ids.each_with_index do |id, i|
         if id == -1
           next
         elsif !(names[i] = Kanmusu::kanmusu_names[id]).nil?
@@ -419,7 +375,7 @@ module Kancolle
       s_exp = Array.new(6)
       e_exp = Array.new(6)
 
-      ids.each_with_index do |id, i|
+      @ids.each_with_index do |id, i|
         s_exp[i] = port_ship(id, "api_exp", port_json)
         e_exp[i] = port_ship(id, "api_exp", end_port_json)
       end
@@ -565,6 +521,24 @@ module Kancolle
         end
       else
         return nil
+      end
+    end
+    # read_all内の出撃で得た資源
+    def got_resource!(key, map_route, start_json, file_json)
+      @route.each_with_index do |route, i|
+        if map_route.include?(route)
+          if i == 0
+            @got_fuel  += start_json["api_data"]["api_itemget"]["api_getcount"] if key == :fuel
+            @got_bull  += start_json["api_data"]["api_itemget"]["api_getcount"] if key == :bull
+            @got_steel += start_json["api_data"]["api_itemget"]["api_getcount"] if key == :steel
+            @got_bauxisite  += start_json["api_data"]["api_itemget"]["api_getcount"] if key == :bauxisite
+          else
+            @got_fuel  += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"] if key == :fuel
+            @got_bull  += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"] if key == :bull
+            @got_stell += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"] if key == :stell
+            @got_bauxisite += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"] if key == :bauxisite
+          end
+        end
       end
     end
     ##################################################################
