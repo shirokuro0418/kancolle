@@ -30,13 +30,6 @@ module Kancolle
       end
       return DbEntryFiles.new(entry_files.sort{|a,b| a.date<=>b.date})
     end
-    def self.between_days(s_day, e_day)
-      DbConnection::sql "SELECT * FROM entry_files WHERE date BETWEEN '#{s_day}' AND '#{e_day}'"
-    end
-    def self.today
-      day = Date.today
-      DbConnection::sql "SELECT * FROM entry_files WHERE date BETWEEN '#{day}' AND '#{day+1}'"
-    end
     def self.sql(sql)
       db = self.connect
 
@@ -57,7 +50,27 @@ module Kancolle
       end
       return DbEntryFiles.new(entry_files.sort{|a,b| a.date<=>b.date})
     end
+    def self.between_days(s_day, e_day)
+      DbConnection::sql "SELECT * FROM entry_files WHERE date BETWEEN '#{s_day}' AND '#{e_day}'"
+    end
+    def self.today
+      day = Date.today
+      DbConnection::sql "SELECT * FROM entry_files WHERE date BETWEEN '#{day}' AND '#{day+1}'"
+    end
     # ensei
+    def self.all_ensei
+      db = self.connect
+
+      ensei_files = Array.new
+      db.exec("SELECT * FROM ensei_result").each do |row|
+        entry = Hash.new
+        row.each do |column, value|
+          entry[column] = value if column != "id"
+        end
+        ensei_files.push DbEnseiFile.new(entry)
+      end
+      return DbEnseiFiles.new(ensei_files.sort{|a,b| a.date<=>b.date})
+    end
     def self.sql_ensei(sql)
       db = self.connect
 

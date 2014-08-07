@@ -24,7 +24,7 @@ module Kancolle
             if value.nil?
               eval("@#{attribute_name} = nil")
             else
-              eval("@#{attribute_name} = #{value}")
+              eval("@#{attribute_name} = #{value.to_i}")
             end
           elsif arrays.include?(attribute_name)
             eval("@#{attribute_name} = #{JSON::parse value.gsub(/nil/,'null').gsub(/{/,'[').gsub(/}/,']')}")
@@ -34,5 +34,39 @@ module Kancolle
         end
       end
     end
+    ##################################################################
+    # インスタンスメソッド                                           #
+    ##################################################################
+    def item1_name
+      db = DbConnection::connect
+      begin
+        if @item1_id.nil?
+          return nil
+        else
+          return db.exec("SELECT * FROM item WHERE id = #{@item1_id}")[0]["item_name"].rstrip
+        end
+      rescue => e
+        puts "errer:#{e}"
+      ensure
+        db.close
+      end
+    end
+    def item2_name
+      db = DbConnection::connect
+      begin
+        if @item2_id.nil?
+          return nil
+        else
+          return db.exec("SELECT * FROM item WHERE id = #{@item2_id}")[0]["item_name"].rstrip
+        end
+      rescue => e
+        puts "errer:#{e}"
+      ensure
+        db.close
+      end
+    end
+    ##################################################################
+    # end インスタンスメソッド                                       #
+    ##################################################################
   end
 end

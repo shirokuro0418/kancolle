@@ -5,8 +5,7 @@ module Kancolle
   class DbEnseiFiles < Array
 
     def initialize(ensei_files = nil)
-      ensei_files = DbConnection::ensei_today if ensei_files.nil?
-      super(ensei_file.length){ensei_files}
+      super(ensei_files)
     end
 
     ##################################################################
@@ -21,7 +20,19 @@ module Kancolle
     def item1_names
       db = DbConnection::connect
 
-      self.map{|enesi_file| db.exec("SELECT * FROM item WHERE id = #{ensei_file.item1_id}")[0].item_name}
+      begin
+        return self.map do |enesi_file|
+          if ensei_file.item1_id.nil?
+            nil
+          else
+            db.exec("SELECT * FROM item WHERE id = #{ensei_file.item1_id}")[0]["item_name"].rstrip
+          end
+        end
+      rescue => e
+        puts "errer:#{e}"
+      ensure
+        db.close
+      end
     end
   end
 end

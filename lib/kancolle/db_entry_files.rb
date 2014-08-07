@@ -106,6 +106,11 @@ module Kancolle
       self.select{ |entry_file| day == Date.parse(entry_file.date.to_s) }
     end
 
+    # 互角性のために非推奨
+    def entry_files
+      self
+    end
+
     # 期間指定 Dateクラスを引数に
     def between_days(s_day, e_day)
       if e_day < s_day
