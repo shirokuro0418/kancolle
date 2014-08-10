@@ -35,8 +35,7 @@ begin
 
   # INSERT
   DbConnection::insert(stage, db)
-
-  db.exec "CREATE INDEX emtry_files_date ON entry_files(date);"
+  db.exec "CREATE INDEX entry_files_date ON entry_files(date);"
 rescue => e
   puts "#{e}"
 ensure

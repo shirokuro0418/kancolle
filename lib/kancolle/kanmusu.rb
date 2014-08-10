@@ -42,13 +42,14 @@ module Kancolle
       22940=>132,22965=>133,23007=>134,23328=>135,23977=>136,23978=>137,24518=>138,24724=>139,
       24819=>140
     }
-    @@dir_names = [ "/Users/shirokuro11/Documents/航海日誌アーカイブ/05-23",
-                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/06-14",
-                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/06-24",
-                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/07-04",
-                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/07-14",
-                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/07-18",
-                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/07-28",
+    @@dir_names = [ "/Users/shirokuro11/Documents/航海日誌アーカイブ/14-05-23",
+                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/14-06-14",
+                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/14-06-24",
+                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/14-07-04",
+                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/14-07-14",
+                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/14-07-18",
+                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/14-07-28",
+                    "/Users/shirokuro11/Documents/航海日誌アーカイブ/14-08-08",
                     "/Users/shirokuro11/Documents/koukai_nisshi/data/json/json"
                   ]
 
@@ -79,6 +80,23 @@ module Kancolle
     end
     def self.dir
       @@dir_names
+    end
+    def self.parse_time(file)
+      f = File.basename(file).split('-')
+      unless File.basename(file) =~ /.json$/
+        year  = "20#{f[0]}".to_i
+        month = f[1].to_i
+        day   = f[2].to_i
+        return Time.local(year, month, day)
+      else
+        year  = f[0].to_i
+        month = f[1].to_i
+        day   = f[2][0,2].to_i
+        time  = f[2][3,2].to_i
+        min   = f[2][5,2].to_i
+        sec   = f[2][7,2].to_i
+        Time.local(year, month, day, time, min, sec)
+      end
     end
   end
 end

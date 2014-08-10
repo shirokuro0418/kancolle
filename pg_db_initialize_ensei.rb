@@ -13,6 +13,7 @@ start_time = Time.now
 TABLE_ENSEI   = "ensei_result"
 ENSEI_type = "id SERIAL PRIMARY KEY, ship_id INTEGER[] NOT NULL," +
   "date          TIMESTAMP UNIQUE NOT NULL," +
+  "quest_id      INTEGER NOT NULL," +
   "clear_result  INTEGER NOT NULL," +
   "get_exp       INTEGER NOT NULL," +
   "member_exp    INTEGER NOT NULL," +
@@ -70,6 +71,7 @@ begin
     end
   end
   DbConnection::insert_ensei(f, db)
+  db.exec "CREATE INDEX ensei_result_date ON ensei_result(date);"
 
 rescue => e
   puts "#{e}"

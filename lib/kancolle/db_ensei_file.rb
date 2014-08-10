@@ -5,12 +5,14 @@ module Kancolle
   class DbEnseiFile
     attr_reader :ship_id, :date, :clear_result, :get_exp, :member_exp, :get_ship_exp,
                 :maparea_name, :detail, :quest_name, :quest_level, :get_material,
-                :item1_id, :count_item1, :item2_id, :count_item2
+                :item1_id, :count_item1, :item2_id, :count_item2, :quest_id
 
     def initialize(datas = {})
       arrays   = [ "ship_id", "get_ship_exp", "get_material" ]
       integers = [ "clear_result", "get_exp", "member_exp", "quest_level",
-                   "item1_id", "count_item1", "item2_id", "count_item2" ]
+                   "item1_id", "count_item1", "item2_id", "count_item2",
+                   "quest_id"
+                 ]
       strings  = [ "maparea_name", "detail", "quest_name" ]
       datas.each do |attribute_name, value|
         if attribute_name == "date"

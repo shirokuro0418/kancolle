@@ -535,7 +535,7 @@ module Kancolle
           else
             @got_fuel  += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"] if key == :fuel
             @got_bull  += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"] if key == :bull
-            @got_stell += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"] if key == :stell
+            @got_steel += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"] if key == :steel
             @got_bauxisite += file_json[i][:next]["api_data"]["api_itemget"]["api_getcount"] if key == :bauxisite
           end
         end
