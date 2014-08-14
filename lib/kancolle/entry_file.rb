@@ -11,7 +11,7 @@ module Kancolle
     #                    [ :battle_result   ]
     # @start2          @start[x]をkeyとしたSTART2.jsonのファイルパス
     # @slotitem_member 〃                  SLOTITEM_BEMBER.jsonのファイルパス
-    attr_reader :start, :file, :start2, :slotitem_member, :port, :end_port, :end_slotitem_member
+    attr_reader :start, :file, :start2, :slotitem_member,  :end_slotitem_member, :port, :end_port
 
     def initialize(datas = {})
       super(datas)
@@ -22,6 +22,7 @@ module Kancolle
       # 失った資源
       @lost_fuels    = Array.new
       @lost_bulls    = Array.new
+      @lost_steel    = Array.new
       @lost_bauxites = Array.new
 
       @route         = Array.new
@@ -65,6 +66,10 @@ module Kancolle
     def lost_bulls
       read_all
       @lost_bulls
+    end
+    def lost_steel
+      read_all
+      @lost_steel
     end
     def lost_bauxites
       read_all
@@ -152,31 +157,43 @@ module Kancolle
         start_json                = read_json(@start)
         slotitem_member_json      = read_json(@slotitem_member)
         end_slotitem_member_json  = read_json(@end_slotitem_member)
-        file_json                 = Array.new(@file.length)
         # file_jsonの読み込み
-        @file.each_with_index do |map_info, i|
-          map_info_json = Hash.new
-          map_info.each do |map_info_key, map_info_value|
-            if map_info_value.nil?
-              map_info_json[map_info_key] = nil
-            else
-              open(map_info_value){|j| map_info_json[map_info_key] = JSON::parse(j.read)}
+        unless start_json["api_data"]["api_maparea_id"] == 27 && [3,4,5].include?(start_json["api_data"]["api_mapinfo_no"])
+          file_json                 = Array.new(@file.length)
+          @file.each_with_index do |map_info, i|
+            map_info_json = Hash.new
+            map_info.each do |map_info_key, map_info_value|
+              if map_info_value.nil?
+                map_info_json[map_info_key] = nil
+              else
+                open(map_info_value){|j| map_info_json[map_info_key] = JSON::parse(j.read)}
+              end
             end
+            file_json[i] = map_info_json
           end
-          file_json[i] = map_info_json
+        else
+          file_json = nil
         end
+        json = {
+          :start2              => start2_json,
+          :port                => port_json,
+          :end_port            => end_port_json,
+          :start               => start_json,
+          :slotitem_member     => slotitem_member_json,
+          :end_slotitem_member => end_slotitem_member_json,
+          :file                => file_json
+        }
 
         @ids = port_json["api_data"]["api_deck_port"][0]["api_ship"]
         @map = [start_json["api_data"]["api_maparea_id"], start_json["api_data"]["api_mapinfo_no"]]
-        @lvs = read_lvs(port_json)
-        @lost_fuels    = read_lost_resources(port_json, end_port_json, "api_fuel")
+        @lvs = @ids.map{|id| if id.nil? then nil else port_ship(id, "api_lv", port_json) end }
+        @lost_fuels    = LostFuels.read(json) # read_lost_resources(port_json, end_port_json, "api_fuel")
         @lost_bulls    = read_lost_resources(port_json, end_port_json, "api_bull")
+        @lost_steel    = LostSteel.read(json)
         @lost_bauxites = read_lost_bauxites(port_json, end_port_json)
 
-        tmp = file_json.clone
-        @route         = read_route(start_json, file_json)
+        @route         = Route.read(json) # read_route(start_json, file_json)
         @names         = read_names(port_json, start2_json)
-        # @names_low     = read_names_low
         @slots         = Array.new(6).map{Array.new(5)}
         # slotsの読み込み
         @ids.map{|id| port_ship(id, "api_slot", port_json)}.each_with_index do |kanmusu_slot, i|
@@ -188,19 +205,10 @@ module Kancolle
             end
           end
         end
-        @hantei = file_json.map do |jsons|
-          if jsons[:battle_result].nil?
-            nil
-          else
-            jsons[:battle_result]["api_data"]["api_win_rank"]
-          end
-        end
-
-        hougeki1          = read_hougeki1(file_json)
-        hougeki2          = read_hougeki2(file_json)
-        @rengeki          = read_rengeki(hougeki1, hougeki2)
-        @battle_forms     = read_battle_forms(file_json)
-        @seiku            = read_seiku(file_json)
+        @hantei           = Hantei.read(json)
+        @rengeki          = Rengeki.read(json)
+        @battle_forms     = BattleForms.read(json) # read_battle_forms(file_json)
+        @seiku            = Seiku.read(json) # read_seiku(file_json)
         @exps             = read_exps(port_json, end_port_json)
         @now_exps         = read_now_exps(:start, port_json, end_port_json)
         @now_exps_end     = read_now_exps(:end, port_json, end_port_json)
@@ -232,15 +240,6 @@ module Kancolle
         return JSON::parse(f.read)
       end
     end
-    def read_lvs(port_json)
-      @ids.map do |id|
-        if id.nil?
-          nil
-        else
-          port_ship(id, "api_lv", port_json)
-        end
-      end
-    end
     def read_lost_resources(port_json, end_port_json, key_name)
       # lv10未満は飛ばす
       now_resources = lost_resources(port_json, key_name)
@@ -261,16 +260,6 @@ module Kancolle
       now_onslot.each_with_index{|onslot, i| now_onslot[i] = onslot.inject(:+) if 0 != onslot}
 
       max_onslot.map.with_index{|slot, i| (slot - now_onslot[i]) * 5 unless slot.nil?}
-    end
-    def read_route(start_json, file_json)
-      route = Array.new
-      route.push(start_json["api_data"]["api_no"])
-      tmp_file = file_json.clone
-      tmp_file.shift
-      tmp_file.each do |file_json|
-        route.push(file_json[:next]["api_data"]["api_no"])
-      end
-      route
     end
     def read_names(port_json, start2_json)
       names = Array.new(6).map{nil}
@@ -315,60 +304,6 @@ module Kancolle
       end
 
       kanmusu_rengeki.map{|rengeki| rengeki.inject(:+) }
-    end
-    def read_battle_forms(file_json)
-      forms = Array.new
-      file_json.each do |file_json|
-        unless file_json[:battle].nil?
-          case file_json[:battle]["api_data"]["api_formation"][2]
-          when 1
-            kousen = "同行戦"
-          when 2
-            kousen = "反航戦"
-          when 3
-            kousen = "T字有利"
-          when 4
-            kousen = "T字不利"
-          else
-            kousen = "謎"
-          end
-
-          forms.push(kousen)
-        else
-          forms.push(nil)
-        end
-      end
-      forms
-    end
-    def read_seiku(file)
-      seiku = Array.new
-      file.each do |file_json|
-        unless file_json[:battle].nil?
-          unless file_json[:battle]["api_data"]["api_stage_flag"][0] == 0
-            case file_json[:battle]["api_data"]["api_kouku"]["api_stage1"]["api_disp_seiku"]
-            when 0
-              kousen = "互角"
-            when 1
-              kousen = "制空権確保"
-            when 2
-              kousen = "航空優勢"
-            when 3
-              kousen = "航空劣勢"
-            when 4
-              kousen = "制空権消失"
-            else
-              kousen = "謎"
-            end
-
-            seiku.push(kousen)
-          else
-            seiku.push("謎の場所")
-          end
-        else
-          seiku.push(nil)
-        end
-      end
-      seiku
     end
     def read_exps(port_json, end_port_json)
       exps = Array.new(6)

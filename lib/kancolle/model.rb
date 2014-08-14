@@ -11,7 +11,8 @@ module Kancolle
         elsif value.kind_of?(Array)
           eval("@#{attribute_name} = #{value}")
         else
-          raise "Modelエラー:データの型が会いません。:attribute_name #{attribute_name}:value #{value}"
+          eval("@#{attribute_name} = nil")
+          # raise "Modelエラー:データの型が会いません。:attribute_name #{attribute_name} :value #{value}"
         end
       end
     end
