@@ -129,8 +129,10 @@ module Kancolle
           last_day = Time::parse(row["date"])
         end
         Kanmusu::dir.each do |dir|
-          insert_entry_files = FindEntryFile::parse_for_dir(dir, last_day)
-          self.insert(insert_entry_files, db, false)
+          if dir == Kanmusu::dir.last || last_day < Kanmusu::parse_time(dir)
+            insert_entry_files = FindEntryFile::parse_for_dir(dir, last_day)
+            self.insert(insert_entry_files, db, false)
+          end
         end
 
         # ensei_resultの更新
@@ -257,7 +259,9 @@ module Kancolle
       end
     end
     def self.insert(entry_files, db, outputs = true)
-      to_arrays = ['map', 'lost_bauxites']
+      to_arrays = [ 'map', 'ids', 'lvs', 'lost_fuels', 'lost_bulls', 'lost_bauxites',
+                    'route', 'names', 'hantei', 'rengeki'
+                  ]
       begin
         db.exec "BEGIN"
         print "insert準備中：計#{entry_files.length}中\n" if outputs
@@ -270,7 +274,19 @@ module Kancolle
             if value.nil?
               ins_val += 'null,'
             elsif to_arrays.include? key
-              ins_val += "'#{value.to_s.sub(/\[/,'{').sub(/\]/,'}')}',"
+              ins_val += "'#{value.to_s.sub(/\[/,'{').sub(/\]/,'}').gsub(/nil/,'null')}',"
+            elsif key == "slots"
+              tmp_value = value.clone
+              ins_val += "'{"
+              ins_val += "#{tmp_value.shift.to_s.sub(/\[/,'{').sub(/\]/,'}').gsub(/nil/,'null')}"
+              5.times do
+                if (v = tmp_value.shift).nil?
+                  ins_val += ',{null,null,null,null,null}'
+                else
+                  ins_val += ",#{v.to_s.sub(/\[/,'{').sub(/\]/,'}').gsub(/nil/,'null')}"
+                end
+              end
+              ins_val += "}',"
             else
               ins_val += "'#{value.to_s}',"
             end
