@@ -1,56 +1,43 @@
 # -*- coding: utf-8 -*-
 module Kancolle
-  class LostFuels
+  class LostSteels
     def self.read(json)
       ids = json[:port]["api_data"]["api_deck_port"][0]["api_ship"]
       lvs = ids.map{|id| if id.nil? then nil else self.port_ship(id, "api_lv", json[:port]) end }
 
-      # 出撃した時の燃料の消費
+      # 出撃した時の鋼材の消費
       # lv10未満は飛ばす
-      now_syutugeki_fuel = Array.new
-      now_nyukyo_fuel    = Array.new
+      now_nyukyo_steel    = Array.new
       ids.each_with_index do |id, i|
         if id == -1 || lvs[i] < 10
-          now_syutugeki_fuel[i] = 0
-          now_nyukyo_fuel[i]    = 0
+          now_nyukyo_steel[i]    = 0
         else
           json[:port]["api_data"]["api_ship"].each do |kanmusu|
             if kanmusu["api_id"] == id
-              now_syutugeki_fuel[i] = kanmusu["api_fuel"]
-              now_nyukyo_fuel[i]    = kanmusu["api_ndock_item"][0]
+              now_nyukyo_steel[i]    = kanmusu["api_ndock_item"][1]
               break
             end
           end
         end
       end
-      end_syutugeki_fuel = Array.new
-      end_nyukyo_fuel    = Array.new
+      end_nyukyo_steel    = Array.new
       ids.each_with_index do |id, i|
         if id == -1 || lvs[i] < 10
-          end_syutugeki_fuel[i] = 0
-          end_nyukyo_fuel[i] = 0
+          end_nyukyo_steel[i] = 0
         else
           json[:end_port]["api_data"]["api_ship"].each do |kanmusu|
             if kanmusu["api_id"] == id
-              end_syutugeki_fuel[i] = kanmusu["api_fuel"]
-              end_nyukyo_fuel[i]    = kanmusu["api_ndock_item"][0]
+              end_nyukyo_steel[i]    = kanmusu["api_ndock_item"][1]
               break
             end
           end
         end
       end
       Array.new(6).map.with_index do |n, i|
-        if ids[i] == -1 || end_nyukyo_fuel[i].nil?
+        if ids[i] == -1 || end_nyukyo_steel[i].nil?
           0
         else
-          lost_fuels = end_nyukyo_fuel[i] - now_nyukyo_fuel[i]
-          # ケッコン艦は15%off
-          if lvs[i] > 99
-            lost_fuels += ((now_syutugeki_fuel[i] - end_syutugeki_fuel[i]) * 0.85).to_i
-          else
-            lost_fuels += now_syutugeki_fuel[i] - end_syutugeki_fuel[i]
-          end
-          lost_fuels
+          end_nyukyo_steel[i] - now_nyukyo_steel[i]
         end
       end
     end

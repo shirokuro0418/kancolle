@@ -34,7 +34,11 @@ module Kancolle
         end
       end
       Array.new(6).map.with_index do |n, i|
-        end_nyukyo_steel[i] - now_nyukyo_steel[i]
+        if ids[i] == -1 || end_nyukyo_steel[i].nil?
+          0
+        else
+          end_nyukyo_steel[i] - now_nyukyo_steel[i]
+        end
       end
     end
 

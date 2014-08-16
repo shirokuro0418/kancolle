@@ -37,13 +37,6 @@ module Kancolle
     def extract_route(route)
       self.select {|entry_file| entry_file.route == route}
     end
-    # def length
-    #   @entry_files.length
-    # end
-    # ボーキサイト
-    def lost_bauxites
-      self.map{|entry_file| entry_file.lost_bauxites}
-    end
     # 燃料
     def lost_fuels
       self.map{|entry_file| entry_file.lost_fuels}
@@ -52,6 +45,15 @@ module Kancolle
     def lost_bulls
       self.map{|entry_file| entry_file.lost_bulls}
     end
+    # 鋼材
+    def lost_steels
+      self.map{|entry_file| entry_file.lost_steels}
+    end
+    # ボーキサイト
+    def lost_bauxites
+      self.map{|entry_file| entry_file.lost_bauxites}
+    end
+
     # 回収資源
     def got_fuels
       self.map{|entry_file| entry_file.got_fuel}

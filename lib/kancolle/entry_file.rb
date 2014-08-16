@@ -22,7 +22,7 @@ module Kancolle
       # 失った資源
       @lost_fuels    = Array.new
       @lost_bulls    = Array.new
-      @lost_steel    = Array.new
+      @lost_steels   = Array.new
       @lost_bauxites = Array.new
 
       @route         = Array.new
@@ -67,9 +67,9 @@ module Kancolle
       read_all
       @lost_bulls
     end
-    def lost_steel
+    def lost_steels
       read_all
-      @lost_steel
+      @lost_steels
     end
     def lost_bauxites
       read_all
@@ -139,6 +139,7 @@ module Kancolle
       h[:date] = day
       self.instance_variables.each do |var|
         key = var.to_s.sub(/@/, '')
+        var.to_s.sub(/@/, '').to_s
         h[key] = (eval var.to_s.sub(/@/, '').to_s)
       end
       h
@@ -189,7 +190,7 @@ module Kancolle
         @lvs = @ids.map{|id| if id.nil? then nil else port_ship(id, "api_lv", port_json) end }
         @lost_fuels    = LostFuels.read(json) # read_lost_resources(port_json, end_port_json, "api_fuel")
         @lost_bulls    = read_lost_resources(port_json, end_port_json, "api_bull")
-        @lost_steel    = LostSteel.read(json)
+        @lost_steels   = LostSteels.read(json)
         @lost_bauxites = read_lost_bauxites(port_json, end_port_json)
 
         @route         = Route.read(json) # read_route(start_json, file_json)

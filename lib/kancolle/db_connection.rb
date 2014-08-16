@@ -164,93 +164,7 @@ module Kancolle
         DbConnection::insert_ensei(f, db, false) unless f.empty?
 
         # kanmususの更新
-        last_time = Time.parse((db.exec "SELECT MAX(update_time) FROM kanmusus;").values[0][0])
-        kanmusus_dir = nil
-        Kanmusu::dir.each do |dir_name|
-          if dir_name == Kanmusu::dir.last
-            kanmusus_dir = dir_name
-            break
-          elsif last_time < Kanmusu::parse_time(dir_name)
-            kanmusus_dir = dir_name
-            break
-          end
-        end
-        k_kanmusus = Hash.new
-        k_last_time = nil
-        Dir.open(kanmusus_dir) do |files|
-          files.each do |file|
-            if file =~ /_PORT.json$/ && last_time < Kanmusu::parse_time(file)
-              # 更新情報取得
-              file_full_path = kanmusus_dir + "/" + file
-              port_json = nil
-              open(file_full_path){|p| port_json = JSON::parse(p.read)}
-              next if port_json["api_result"] != 1
-
-              ## port_file内の艦娘の情報を取得
-              k_last_time = Kanmusu::parse_time(file_full_path)
-              port_json["api_data"]["api_ship"].each do |ship|
-                k_kanmusus[ship["api_id"]] = {
-                  :update_time => k_last_time,
-                  :api_id      => ship["api_ship_id"],
-                  :sortno      => ship["api_sortno"],
-                  :now         => true
-                }
-              end
-              # 名前と艦種を取得
-              k_kanmusus.each do |id, value|
-                # 内容変更予定
-                if DbConnection::start2_mst_ship?(db, value[:sortno])
-                  value[:name]    = DbConnection::start2_mst_ship(db, :name  , value[:sortno])
-                  value[:type_id] = DbConnection::start2_mst_ship(db, :type_id, value[:sortno])
-                  value[:type_name] = DbConnection::start2_mst_ship(db, :type_name, value[:sortno])
-                end
-                raise "errer :nameなし id:#{id}, value:#{value}" if value[:name].nil? 
-              end
-            end
-          end
-        end
-        # puts "update false" if k_kanmusus.empty?
-        unless k_kanmusus.empty?
-          db.exec "UPDATE kanmusus SET now = 'false'"
-          k_kanmusus.each do |id,v|
-            # 今持っている艦か
-            if v[:update_time] == k_last_time
-              v[:now] = true
-            else
-              v[:now] = false
-            end
-            if (db.exec "SELECT * FROM kanmusus WHERE id = #{id}").values.empty?
-              columns = "id,"
-              datas   = ""
-
-              datas += "#{id},"
-              v.each do |column, data|
-                columns += "#{column.to_s},"
-                if data.is_a? Integer
-                  datas += "#{data},"
-                else
-                  datas += "'#{data.to_s}',"
-                end
-              end
-              # puts "insert"
-              sql = "INSERT INTO kanmusus(#{columns.sub(/,$/,'')}) VALUES(#{datas.sub(/,$/,'')});"
-            else
-              sets = Array.new
-              v.each do |column, data|
-                if data.is_a? Integer
-                  tmp_data = "#{data}"
-                else
-                  tmp_data = "'#{data.to_s}'"
-                end
-                sets.push "#{column}=#{tmp_data}"
-              end
-              # puts "update"
-              sql = "UPDATE kanmusus SET #{sets.join(',')} WHERE id = #{id};"
-            end
-
-            DbConnection::run_sql sql
-          end
-        end
+        self.update_kanmusus(db)
       rescue => e
         puts "errer: #{e.message}"
         db.exec "ROLLBACK" if db
@@ -259,8 +173,8 @@ module Kancolle
       end
     end
     def self.insert(entry_files, db, outputs = true)
-      to_arrays = [ 'map', 'ids', 'lvs', 'lost_fuels', 'lost_bulls', 'lost_bauxites',
-                    'route', 'names', 'hantei', 'rengeki'
+      to_arrays = [ 'map', 'ids', 'lvs', 'lost_fuels', 'lost_bulls', 'lost_steels',
+                    'lost_bauxites', 'route', 'names', 'hantei', 'rengeki'
                   ]
       begin
         db.exec "BEGIN"
@@ -499,6 +413,255 @@ module Kancolle
         db.exec "COMMIT"
       rescue => e
         puts "#{e}"
+      end
+    end
+    def self.insert_kanmusus(db, dirs, output = false)
+      start2_files = Array.new
+      port_files   = Array.new
+      dirs.each do |dir|
+        Dir.open(dir) do |files|
+          files.each do |file|
+            start2_files.push dir + "/" + file if file =~ /_START2.json$/
+            port_files.push   dir + "/" + file if file =~ /_PORT.json$/
+          end
+        end
+      end
+      kanmusus = Hash.new
+      last_time = nil
+      puts "ファイルからデータを抽出中" if output
+      print "#{port_files.length}中："  if output
+      port_files.each_with_index do |port_file, i|
+        print "#{i} " if output && i % 1000 == 0
+        open(port_file) do |p|
+          port_json = JSON::parse(p.read)
+          next if port_json["api_result"] != 1
+
+          last_time = Kanmusu::parse_time(port_file)
+
+          port_json["api_data"]["api_ship"].each do |ship|
+            if ship["api_locked"] == 1
+              lock = true
+            else
+              lock = false
+            end
+
+            kanmusus[ship["api_id"]] = {
+              :update_time => Kanmusu::parse_time(port_file),
+              :api_id      => ship["api_ship_id"],
+              :sortno      => ship["api_sortno"],
+              :lock        => lock
+            }
+          end
+        end
+      end
+      puts "抽出終了" if output
+
+      print "ファイル：#{kanmusus.length}中：" if output
+      i = 0
+      kanmusus.each do |id, value|
+        print "#{i} " if output && i % 100 == 0
+        i += 1
+
+        # 今持っている艦か
+        if value[:update_time] == last_time
+          value[:now] = true
+        else
+          value[:now] = false
+        end
+        # 名前と艦種を取得
+        name_flg = false
+        type_flg = false
+        start2_files.reverse_each do |start2_file|
+          break if name_flg && type_flg
+          start2_json = nil
+          open(start2_file){|s2| start2_json = JSON::parse(s2.read)}
+
+          ships = start2_json["api_data"]["api_mst_ship"] unless start2_json["api_data"].nil?
+          ships.reverse_each do |ship|
+            if ship["api_sortno"] == value[:sortno]
+              value[:name] = ship["api_name"]
+              value[:type_id] = ship["api_stype"]
+              name_flg = true
+              break
+            end
+          end
+          stypes = start2_json["api_data"]["api_mst_stype"] unless start2_json["api_data"].nil?
+          stypes.each do |stype|
+            break if value[:type_id].nil?
+            if stype["api_sortno"] == value[:type_id]
+              value[:type_name] = stype["api_name"]
+              type_flg = true
+              break
+            end
+          end
+        end
+        raise "errer :nameなし id:#{id}, value:#{value}" if value[:name].nil? 
+        raise "errer :nameなし id:#{id}, value:#{value}" if value[:name].nil? 
+      end
+
+      puts "実行" if output
+      db.exec "UPDATE kanmusus SET now = 'false'"
+
+      kanmusus.each do |id,v|
+        columns = "id,"
+        datas   = ""
+
+        datas += "#{id},"
+        v.each do |column, data|
+          columns += "#{column.to_s},"
+          if data.is_a? Integer
+            datas += "#{data},"
+          else
+            datas += "'#{data.to_s}',"
+          end
+        end
+        db.exec "INSERT INTO #{TABLE_NAME}(#{columns.sub(/,$/,'')}) VALUES(#{datas.sub(/,$/,'')});"
+      end
+    end
+    # insert_newrestのkanmususが長いので別に
+    def self.update_kanmusus(db, output = false)
+      last_time = Time.parse((db.exec "SELECT MAX(update_time) FROM kanmusus;").values[0][0])
+      start2_files = Array.new
+      port_files   = Array.new
+      Kanmusu::dir.each do |dir|
+        Dir.open(dir) do |files|
+          files.each do |file|
+            start2_files.push dir + "/" + file if file =~ /_START2.json$/
+            port_files.push   dir + "/" + file if file =~ /_PORT.json$/
+          end
+        end
+      end
+      start2_files.select!{|file| last_time < Kanmusu::parse_time(file)}
+      port_files.select!{|file| last_time < Kanmusu::parse_time(file)}
+      k_kanmusus = Hash.new
+      k_last_time = nil
+      puts "kanmusus:#{port_files.length} 中 " if output
+      # 更新情報取得
+      port_files.each_with_index do |file,i|
+        print "#{i} " if i % 100 == 0 && output
+        port_json = nil
+        open(file){|p| port_json = JSON::parse(p.read)}
+        next if port_json["api_result"] != 1
+
+        ## port_file内の艦娘の情報を取得
+        k_last_time = Kanmusu::parse_time(file)
+        unless file == port_files.last
+          # 130番目以降
+          port_json["api_data"]["api_ship"][130..port_json["api_data"]["api_ship"].length-1].each do |ship|
+            if ship["api_locked"] == 1
+              lock = true
+            else
+              lock = false
+            end
+
+            k_kanmusus[ship["api_id"]] = {
+              :update_time => k_last_time,
+              :api_id      => ship["api_ship_id"],
+              :sortno      => ship["api_sortno"],
+              :now         => false,
+              :lock        => lock
+            }
+          end
+        else
+          port_json["api_data"]["api_ship"].each do |ship|
+            if ship["api_locked"] == 1
+              lock = true
+            else
+              lock = false
+            end
+
+            k_kanmusus[ship["api_id"]] = {
+              :update_time => k_last_time,
+              :api_id      => ship["api_ship_id"],
+              :sortno      => ship["api_sortno"],
+              :now         => true,
+              :lock        => lock
+            }
+          end
+        end
+        # 名前と艦種を取得
+        k_kanmusus.each do |id, value|
+          # 内容変更予定
+          if DbConnection::start2_mst_ship?(db, value[:sortno])
+            value[:name]    = DbConnection::start2_mst_ship(db, :name  , value[:sortno])
+            value[:type_id] = DbConnection::start2_mst_ship(db, :type_id, value[:sortno])
+            value[:type_name] = DbConnection::start2_mst_ship(db, :type_name, value[:sortno])
+          end
+          raise "errer :nameなし id:#{id}, value:#{value}" if value[:name].nil? 
+        end
+        # データが多い場合UPDATE
+        if i % 501 == 500 && !k_kanmusus.empty?
+          puts "\n更新" if output
+          db.exec "UPDATE kanmusus SET now = 'false'"
+          k_kanmusus.each do |id,v|
+            if (db.exec "SELECT * FROM kanmusus WHERE id = #{id}").values.empty?
+              columns = "id,"
+              datas   = ""
+
+              datas += "#{id},"
+              v.each do |column, data|
+                columns += "#{column.to_s},"
+                if data.is_a? Integer
+                  datas += "#{data},"
+                else
+                  datas += "'#{data.to_s}',"
+                end
+              end
+              # puts "insert"
+              sql = "INSERT INTO kanmusus(#{columns.sub(/,$/,'')}) VALUES(#{datas.sub(/,$/,'')});"
+            else
+              sets = Array.new
+              v.each do |column, data|
+                if data.is_a? Integer
+                  tmp_data = "#{data}"
+                else
+                  tmp_data = "'#{data.to_s}'"
+                end
+                sets.push "#{column}=#{tmp_data}"
+              end
+              # puts "update"
+              sql = "UPDATE kanmusus SET #{sets.join(',')} WHERE id = #{id};"
+            end
+
+            db.exec sql
+          end
+          k_kanmusus = Hash.new
+        end
+      end
+      unless k_kanmusus.empty?
+        db.exec "UPDATE kanmusus SET now = 'false'"
+        k_kanmusus.each do |id,v|
+          if (db.exec "SELECT * FROM kanmusus WHERE id = #{id}").values.empty?
+            columns = "id,"
+            datas   = ""
+
+            datas += "#{id},"
+            v.each do |column, data|
+              columns += "#{column.to_s},"
+              if data.is_a? Integer
+                datas += "#{data},"
+              else
+                datas += "'#{data.to_s}',"
+              end
+            end
+            # puts "insert"
+            sql = "INSERT INTO kanmusus(#{columns.sub(/,$/,'')}) VALUES(#{datas.sub(/,$/,'')});"
+          else
+            sets = Array.new
+            v.each do |column, data|
+              if data.is_a? Integer
+                tmp_data = "#{data}"
+              else
+                tmp_data = "'#{data.to_s}'"
+              end
+              sets.push "#{column}=#{tmp_data}"
+            end
+            # puts "update"
+            sql = "UPDATE kanmusus SET #{sets.join(',')} WHERE id = #{id};"
+          end
+
+          db.exec sql
+        end
       end
     end
 
